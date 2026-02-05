@@ -1,0 +1,16 @@
+{
+  "name": "KoBoard",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "pnpm -r build",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "pnpm run --filter web dev"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "private": true,
+  "packageManager": "pnpm@10.27.0"
+}

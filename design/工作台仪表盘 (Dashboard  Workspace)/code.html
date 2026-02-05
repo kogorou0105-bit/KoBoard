@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>SaaS Collaboration Dashboard</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#111418] dark:text-white overflow-hidden">
+<div class="flex h-screen w-full">
+<!-- Sidebar -->
+<aside class="w-64 flex-shrink-0 flex flex-col bg-white dark:bg-background-dark border-r border-[#f0f2f4] dark:border-gray-800">
+<!-- Logo Area -->
+<div class="p-6 pb-2">
+<div class="flex items-center gap-3">
+<div class="bg-gradient-to-br from-primary to-blue-400 size-8 rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">CanvasBoard</h1>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex-1 px-4 py-6 flex flex-col gap-1 overflow-y-auto">
+<!-- Recent (Active) -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary group transition-colors" href="#">
+<span class="material-symbols-outlined filled icon-filled text-[20px]">schedule</span>
+<span class="text-sm font-medium">Recent</span>
+</a>
+<!-- Favorites -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">star</span>
+<span class="text-sm font-medium">Favorites</span>
+</a>
+<!-- My Team -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm font-medium">My Team</span>
+</a>
+<!-- Trash -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+<span class="text-sm font-medium">Trash</span>
+</a>
+</nav>
+<!-- Bottom Actions -->
+<div class="p-4 border-t border-[#f0f2f4] dark:border-gray-800 flex flex-col gap-2">
+<!-- Settings -->
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<!-- User Profile -->
+<div class="mt-2 flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors">
+<div class="relative">
+<div class="bg-center bg-no-repeat bg-cover rounded-full size-8" data-alt="User profile picture of a smiling man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD2nxsvWKovaJ_kQYZaYVOl7DpCZsGsStfuoS5qBKoxY362Xyey5NWuH4icXboHJ068t1CSm02ssy4GcLXe_n3gCxrhiBx4dolSg-iFJ5ypgq-MPwbBY83hj25jo6I9ArrAgSwc89v0OQrRx_AeVCBjCPYF9kvXqH_iggfutPrbbZ5ymkzkyM0n6yasO9symAqRIntfqWaOyCTfRfL6jfw1Gnyn5o-dDwOjizCITMr3agJKwc_Ae-O0-IUPeQ7GqMFeTaLWuLlJ3ZE");'>
+</div>
+<div class="absolute bottom-0 right-0 size-2.5 bg-green-500 border-2 border-white dark:border-gray-900 rounded-full"></div>
+</div>
+<div class="flex flex-col">
+<p class="text-sm font-medium text-[#111418] dark:text-white leading-none">Alex Morgan</p>
+<p class="text-xs text-gray-500 mt-1 leading-none">Pro Plan</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-full overflow-hidden bg-background-light dark:bg-background-dark">
+<!-- Top Header -->
+<header class="h-16 flex-shrink-0 bg-white dark:bg-background-dark border-b border-[#f0f2f4] dark:border-gray-800 px-8 flex items-center justify-between">
+<!-- Search -->
+<div class="flex-1 max-w-lg">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-gray-400 text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border-none rounded-lg leading-5 bg-[#f0f2f4] dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-primary/20 focus:bg-white dark:focus:bg-gray-900 transition-all sm:text-sm" placeholder="Search boards..." type="text"/>
+</div>
+</div>
+<!-- Right Actions -->
+<div class="flex items-center gap-4 ml-4">
+<div class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-800 px-3 py-1.5 rounded-lg transition-colors">
+<span class="text-sm font-medium text-gray-600 dark:text-gray-300">Sort by:</span>
+<span class="text-sm font-semibold text-gray-900 dark:text-white">Last Viewed</span>
+<span class="material-symbols-outlined text-gray-400 text-[18px]">expand_more</span>
+</div>
+<button class="bg-primary hover:bg-blue-600 text-white text-sm font-bold py-2 px-4 rounded-lg flex items-center gap-2 transition-colors shadow-sm shadow-blue-200 dark:shadow-none">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                        New Board
+                    </button>
+</div>
+</header>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto p-8">
+<div class="max-w-[1400px] mx-auto">
+<!-- Section Title -->
+<div class="flex items-end justify-between mb-6">
+<h2 class="text-xl font-bold text-[#111418] dark:text-white tracking-tight">Recent Boards</h2>
+<span class="text-sm text-gray-500 cursor-pointer hover:text-primary">View all</span>
+</div>
+<!-- Grid -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+<!-- Card 1: Create New -->
+<div class="group relative aspect-[4/3] rounded-xl border-2 border-dashed border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900/40 hover:border-primary hover:bg-primary/5 transition-all cursor-pointer flex flex-col items-center justify-center gap-3">
+<div class="size-12 rounded-full bg-gray-100 dark:bg-gray-800 group-hover:bg-primary/20 flex items-center justify-center transition-colors">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary text-[28px] transition-colors">add</span>
+</div>
+<p class="text-sm font-semibold text-gray-600 dark:text-gray-400 group-hover:text-primary transition-colors">Create New Board</p>
+</div>
+<!-- Card 2: Q3 Roadmap -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Abstract flowchart diagram with colorful nodes" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCnBAv_nt6BGcsHBqhQEoLbD_83AvNFhBzL0ZW0jFfmMGJQCvCrkaOrnjPCrvvmXTP5ExcRJpbAGagcZSBDVU7D58UQm0Q-W0YAFZ6f5kGs7EQlh0EH9DC0oweiV3yb6gJvmFfuG0zmXaH-28ycRArVPudF5pGXqzlq6oGx2HdnCsz5fuZSmqiYtVz1lAua7hgv8jRcJ9pwdcvJ-MTDTB5V4lZVd993TAl--WH1so_I14g08v12PKeWARZpPOpRj3UWHaNnmDtCKZI");'>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="bg-white/90 dark:bg-black/80 hover:bg-white p-1.5 rounded-lg shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-[20px]">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="px-1">
+<div class="flex justify-between items-start">
+<h3 class="text-base font-semibold text-[#111418] dark:text-white leading-tight group-hover:text-primary transition-colors cursor-pointer">Q3 Roadmap</h3>
+</div>
+<p class="text-xs text-gray-500 mt-1">Last edited 2m ago</p>
+</div>
+</div>
+<!-- Card 3: Marketing Campaign -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Wireframe sketches on a whiteboard background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuArLxYTUg4fSM8ebOKAN-u4hPYKaXtjDMGr6wAFFNt19zwhpAgc8LY-BIIBX6lb0af72EnFFjTUweeDJxeFLid2yjyv9x_QlBytF3PVsMPlXqrPFSTiq9EiV9QbUMD6SBI73DFZxR6catuzFvUE2j0lwRUxXhNOwXTfxsh6yYbrAnkyqVPffNZKTqVPP-YZKIhPB5vCN1L8BnSG05zmweeIyylb92gD9ii4cTUZXPpwAn0qO1KAzGutvNmTFmmcPeDQigNBg_MRQ3U");'>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="bg-white/90 dark:bg-black/80 hover:bg-white p-1.5 rounded-lg shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-[20px]">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="px-1">
+<div class="flex justify-between items-start">
+<h3 class="text-base font-semibold text-[#111418] dark:text-white leading-tight group-hover:text-primary transition-colors cursor-pointer">Marketing Campaign</h3>
+</div>
+<p class="text-xs text-gray-500 mt-1">Last edited 1h ago</p>
+</div>
+</div>
+<!-- Card 4: Untitled Board -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Simple sticky note arrangement on a wall" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAPN52oHKsWzylTwiRVryR0UUAGY89NIzBzqaHYzglgcHXGsP75RQnAaaORTvAEtqfmmquhdTWnbGccybBSvtliP1EfPSe6KmLWCOHD0Jj2OWzThw2Vm4vuLFE74O3-wdQR5ug35YknlRinoJnUAqY2erc87slXsxDgo19ftVKZUne9spRDBI84ZkBuH4-auSLne-fLNayt8wZnDSYRYEcuIN767BGFq0yOh9bjhytCIGhYDUVe5sE3oQ20AZHAzN5PGAFeZ_O9sqc");'>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="bg-white/90 dark:bg-black/80 hover:bg-white p-1.5 rounded-lg shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-[20px]">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="px-1">
+<div class="flex justify-between items-start">
+<h3 class="text-base font-semibold text-[#111418] dark:text-white leading-tight group-hover:text-primary transition-colors cursor-pointer">Untitled Board</h3>
+</div>
+<p class="text-xs text-gray-500 mt-1">Last edited 1d ago</p>
+</div>
+</div>
+<!-- Card 5: System Architecture -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Complex network diagram with servers and databases" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAZx9kjpn1iv8hp29JTuImg38HBvoCwzeMRjm8YwB2lJgN6N6lyHztq50vNGDeAEBq2jLGqX5-_b1Ni8qtEqpWTNHQXwrkbiePAkyu8KaefyN--kpil2lV0v-UltIgzmJdfdLGTfvXNeUwW_ryzi9VvggdMroNrIgs2z3rTdSaDBRePtMEO748HrTjizhtCLgiuYovCBvefgC4vwKXFMQONWtolhKuW6GTUtk1MrC3k5EV4M8W46YB_jVk_3Cqtkya-3yXilntfZFg");'>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="bg-white/90 dark:bg-black/80 hover:bg-white p-1.5 rounded-lg shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-[20px]">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="px-1">
+<div class="flex justify-between items-start">
+<h3 class="text-base font-semibold text-[#111418] dark:text-white leading-tight group-hover:text-primary transition-colors cursor-pointer">System Architecture</h3>
+</div>
+<p class="text-xs text-gray-500 mt-1">Last edited 2d ago</p>
+</div>
+</div>
+<!-- Card 6: Design Sprint -->
+<div class="group flex flex-col gap-3">
+<div class="relative aspect-[4/3] w-full overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm hover:shadow-md transition-all cursor-pointer">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-105" data-alt="Colorful sticky notes organized in columns" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCJRAVtfguCrghKFM2rfGc1WKXwxKX5XDjlUIOxRUbcoFhFoCy34J-3u290PZ7QLW7Q5vEHhSFf48Gs7WJ2St7FCQjOPohPYKEcdBk86s8MhsRuLVXDUcduX3bv_IkF7ENg_3ZMNNDLbmFimLRQEspiDC93XmBc-dj7OQ87ADkW_ezzZUBBJOQZ-dwiP9ulWKiRRWsyxzVoD22ayP8-SZha2plKf-vM4On2ogl4wKJeuaN2Si7kvriylitUlQDZmjio8aAXFYV_OSw");'>
+</div>
+<div class="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="bg-white/90 dark:bg-black/80 hover:bg-white p-1.5 rounded-lg shadow-sm backdrop-blur-sm">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 text-[20px]">more_horiz</span>
+</button>
+</div>
+</div>
+<div class="px-1">
+<div class="flex justify-between items-start">
+<h3 class="text-base font-semibold text-[#111418] dark:text-white leading-tight group-hover:text-primary transition-colors cursor-pointer">Design Sprint</h3>
+</div>
+<p class="text-xs text-gray-500 mt-1">Last edited 3d ago</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

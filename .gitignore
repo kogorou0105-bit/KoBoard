@@ -1,0 +1,73 @@
+# ----------------------
+# 依赖与 pnpm 特定文件
+# ----------------------
+node_modules/
+.pnpm-store/
+
+# pnpm 调试日志
+pnpm-debug.log*
+# 为了防止意外混用其他包管理器，也可以忽略它们的日志
+npm-debug.log*
+yarn-error.log*
+yarn.lock
+package-lock.json
+
+# ----------------------
+# 构建与输出目录
+# ----------------------
+dist/
+build/
+out/
+lib/
+# Next.js 构建输出
+.next/
+# Nuxt.js 构建输出
+.nuxt/
+.output/
+
+# ----------------------
+# 测试与覆盖率
+# ----------------------
+coverage/
+.nyc_output/
+
+# ----------------------
+# 环境变量 (非常重要)
+# ----------------------
+# 务必忽略含有敏感信息的 .env 文件
+.env
+.env.local
+.env.*.local
+# 保留示例文件
+!.env.example
+
+# ----------------------
+# IDE 与 编辑器配置
+# ----------------------
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+*.suo
+*.ntvs
+*.njsproj
+*.sln
+*.sw?
+
+# ----------------------
+# 操作系统生成文件
+# ----------------------
+.DS_Store
+Thumbs.db
+
+# ----------------------
+# 其他日志
+# ----------------------
+logs
+*.log
+npm-debug.log*
+lerna-debug.log*
+.eslintcache
+.stylelintcache

@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Pricing &amp; Team Management - KoBoard</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5048e5",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#121121",
+                        "text-main": "#121117",
+                        "text-secondary": "#656487",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "body": ["Noto Sans", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main antialiased overflow-x-hidden">
+<div class="relative flex min-h-screen w-full flex-col">
+<!-- TopNavBar -->
+<header class="sticky top-0 z-50 flex items-center justify-between whitespace-nowrap border-b border-solid border-b-[#e5e7eb] bg-white px-6 py-3 shadow-sm md:px-10">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-text-main">
+<div class="size-8 text-primary">
+<svg class="w-full h-full" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path clip-rule="evenodd" d="M39.475 21.6262C40.358 21.4363 40.6863 21.5589 40.7581 21.5934C40.7876 21.655 40.8547 21.857 40.8082 22.3336C40.7408 23.0255 40.4502 24.0046 39.8572 25.2301C38.6799 27.6631 36.5085 30.6631 33.5858 33.5858C30.6631 36.5085 27.6632 38.6799 25.2301 39.8572C24.0046 40.4502 23.0255 40.7407 22.3336 40.8082C21.8571 40.8547 21.6551 40.7875 21.5934 40.7581C21.5589 40.6863 21.4363 40.358 21.6262 39.475C21.8562 38.4054 22.4689 36.9657 23.5038 35.2817C24.7575 33.2417 26.5497 30.9744 28.7621 28.762C30.9744 26.5497 33.2417 24.7574 35.2817 23.5037C36.9657 22.4689 38.4054 21.8562 39.475 21.6262ZM4.41189 29.2403L18.7597 43.5881C19.8813 44.7097 21.4027 44.9179 22.7217 44.7893C24.0585 44.659 25.5148 44.1631 26.9723 43.4579C29.9052 42.0387 33.2618 39.5667 36.4142 36.4142C39.5667 33.2618 42.0387 29.9052 43.4579 26.9723C44.1631 25.5148 44.659 24.0585 44.7893 22.7217C44.9179 21.4027 44.7097 19.8813 43.5881 18.7597L29.2403 4.41187C27.8527 3.02428 25.8765 3.02573 24.2861 3.36776C22.6081 3.72863 20.7334 4.58419 18.8396 5.74801C16.4978 7.18716 13.9881 9.18353 11.5858 11.5858C9.18354 13.988 7.18717 16.4978 5.74802 18.8396C4.58421 20.7334 3.72865 22.6081 3.36778 24.2861C3.02574 25.8765 3.02429 27.8527 4.41189 29.2403Z" fill="currentColor" fill-rule="evenodd"></path>
+</svg>
+</div>
+<h2 class="text-text-main text-lg font-bold leading-tight tracking-[-0.015em]">KoBoard</h2>
+</div>
+<label class="hidden md:flex flex-col min-w-40 !h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full border border-[#dcdce5] bg-[#f9fafb] focus-within:border-primary transition-colors">
+<div class="text-text-secondary flex items-center justify-center pl-3">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg bg-transparent border-none focus:ring-0 placeholder:text-text-secondary px-3 text-sm font-normal leading-normal" placeholder="Search" value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-6 md:gap-8">
+<div class="hidden md:flex items-center gap-6 lg:gap-9">
+<a class="text-text-secondary hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Dashboard</a>
+<a class="text-text-secondary hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Projects</a>
+<a class="text-text-main text-sm font-medium leading-normal border-b-2 border-primary pb-0.5" href="#">Team</a>
+<a class="text-text-secondary hover:text-primary transition-colors text-sm font-medium leading-normal" href="#">Settings</a>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center size-10 rounded-full bg-gray-100 hover:bg-gray-200 transition text-text-secondary">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border border-gray-200" data-alt="User profile avatar placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuABV7TpjV73EFpS1aSpBqiimQpujqFhV0CM1SqL5VIMDHa8-PVm-Kkc518TYK2UMeKPHPlQCkTwby9fqvB8_GLT4d3n4M8tVlNeAJv3DKN3syy7ecPzJTQ9ANYFAPYL2_97EXVPD87MIpmrdEwMgCKRXOMYnv-If5F-T1GdZ2X5VH8WBV0_QQyjEZta6BbjSZqJYhpDFDriBlkFXxxP7MqDyQ4jERDtzsndUnfbcGeJ8e82kEusFGnx5ogtBMGyAfviNXjtGk5e4fc");'></div>
+</div>
+</div>
+</header>
+<div class="layout-container flex h-full grow flex-col">
+<div class="flex flex-1 justify-center py-8 px-4 md:px-8">
+<div class="layout-content-container flex flex-col w-full max-w-[1024px] gap-8">
+<!-- Page Heading -->
+<div class="flex flex-col gap-2 md:flex-row md:justify-between md:items-end">
+<div class="flex flex-col gap-2">
+<h1 class="text-text-main text-3xl md:text-4xl font-black leading-tight tracking-[-0.033em]">Plan &amp; Team Settings</h1>
+<p class="text-text-secondary text-base font-normal leading-normal">Manage your billing tier and team access.</p>
+</div>
+</div>
+<!-- Pricing Section -->
+<section>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Free Card -->
+<div class="flex flex-col gap-6 rounded-xl border border-solid border-[#e5e7eb] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-2">
+<h3 class="text-text-main text-lg font-bold leading-tight">Free</h3>
+<p class="text-text-secondary text-sm">For hobbyists</p>
+<p class="flex items-baseline gap-1 text-text-main mt-2">
+<span class="text-4xl font-black leading-tight tracking-[-0.033em]">$0</span>
+<span class="text-base font-medium text-text-secondary">/mo</span>
+</p>
+</div>
+<div class="flex flex-col gap-3 flex-1">
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    1 User
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Basic Analytics
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Community Support
+                                </div>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center rounded-lg h-10 px-4 border border-[#e5e7eb] bg-white hover:bg-gray-50 text-text-main text-sm font-semibold transition-colors">
+                                Current Plan
+                            </button>
+</div>
+<!-- Pro Card (Highlighted) -->
+<div class="relative flex flex-col gap-6 rounded-xl border-2 border-primary bg-white p-6 shadow-lg transform md:-translate-y-2">
+<div class="absolute -top-3 left-1/2 -translate-x-1/2 bg-primary text-white text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">
+                                Most Popular
+                            </div>
+<div class="flex flex-col gap-2">
+<h3 class="text-text-main text-lg font-bold leading-tight">Pro</h3>
+<p class="text-text-secondary text-sm">For power users</p>
+<p class="flex items-baseline gap-1 text-text-main mt-2">
+<span class="text-4xl font-black leading-tight tracking-[-0.033em]">$12</span>
+<span class="text-base font-medium text-text-secondary">/mo</span>
+</p>
+</div>
+<div class="flex flex-col gap-3 flex-1">
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Unlimited AI Tokens
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Priority Support
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    5 Users
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Advanced Analytics
+                                </div>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary hover:bg-indigo-600 text-white text-sm font-bold shadow-sm transition-colors">
+                                Upgrade to Pro
+                            </button>
+</div>
+<!-- Team Card -->
+<div class="flex flex-col gap-6 rounded-xl border border-solid border-[#e5e7eb] bg-white p-6 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex flex-col gap-2">
+<h3 class="text-text-main text-lg font-bold leading-tight">Team</h3>
+<p class="text-text-secondary text-sm">For organizations</p>
+<p class="flex items-baseline gap-1 text-text-main mt-2">
+<span class="text-4xl font-black leading-tight tracking-[-0.033em]">Custom</span>
+</p>
+</div>
+<div class="flex flex-col gap-3 flex-1">
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Single Sign-On (SSO)
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Audit Logs
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Unlimited Users
+                                </div>
+<div class="text-sm font-normal leading-normal flex gap-3 text-text-main items-center">
+<span class="material-symbols-outlined text-primary text-[20px]">check</span>
+                                    Dedicated Manager
+                                </div>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center rounded-lg h-10 px-4 border border-[#e5e7eb] bg-white hover:bg-gray-50 text-text-main text-sm font-semibold transition-colors">
+                                Contact Sales
+                            </button>
+</div>
+</div>
+</section>
+<div class="border-b border-gray-200 my-4"></div>
+<!-- Team Members Section -->
+<section class="flex flex-col gap-4">
+<div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+<div>
+<h2 class="text-text-main text-xl font-bold leading-tight tracking-[-0.015em]">Team Members</h2>
+<p class="text-text-secondary text-sm mt-1">Manage who has access to this workspace.</p>
+</div>
+<button class="flex items-center justify-center gap-2 bg-primary hover:bg-indigo-600 text-white text-sm font-semibold h-10 px-4 rounded-lg transition-colors shadow-sm">
+<span class="material-symbols-outlined text-[20px]">add</span>
+                            Invite Member
+                        </button>
+</div>
+<div class="overflow-x-auto rounded-lg border border-[#e5e7eb] bg-white shadow-sm">
+<table class="w-full min-w-[700px]">
+<thead class="bg-[#f9fafb] border-b border-[#e5e7eb]">
+<tr>
+<th class="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider w-[40%]">Name</th>
+<th class="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider w-[20%]">Role</th>
+<th class="px-6 py-3 text-left text-xs font-semibold text-text-secondary uppercase tracking-wider w-[20%]">Status</th>
+<th class="px-6 py-3 text-right text-xs font-semibold text-text-secondary uppercase tracking-wider w-[10%]">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#e5e7eb]">
+<!-- Row 1 -->
+<tr class="group hover:bg-gray-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center border border-gray-200" data-alt="Portrait of Alice Smith" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDszBX85L1B9YWDfA1jh4oCiortmNt2Shpe1dHQ4jzh6_TawMoMjDI-Z9F1Bbn7n91y_6GFxyua9r_BfDs2hEILayOXt7xk3-FKtqWjHiKaxZHYmRxcOo41QZvqSeU1cggtBr8zgwFpb-HXia62aDW9RYlHOVIrXkT1xLWvJLt9oP9g1UJyQbhij0d_vyTs1hEkBFPFpbEnTHmD5VYXCDbPjFmA1uzGeBR3gO88Mr-Fz6vYqEKmtGnL5PmujBqqZRUCaqEg00q68Bc");'></div>
+<div class="absolute bottom-0 right-0 size-3 rounded-full border-2 border-white bg-green-500"></div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-text-main">Alice Smith</span>
+<span class="text-xs text-text-secondary">alice@koboard.io</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center rounded-md bg-amber-100 px-2.5 py-0.5 text-xs font-medium text-amber-800">
+                                            Owner
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-green-500"></div>
+<span class="text-sm text-text-secondary">Online</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-secondary hover:text-text-main p-1 rounded hover:bg-gray-200 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-gray-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center border border-gray-200" data-alt="Portrait of Bob Jones" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBEt4gMco0BKfMDBVCj4DIEQEYJCa9S54_0bIOR89h1ALuMSi2dWESRENvX87LpBiup6BXgDRq-kloi44pVHbuYt54Rq9GPQlzXt5f7BOV74GhLYfi96bbOv1txulPHzMZ6qfG9xSNqtrOvDUXtw2X5Rf_dl6j252p7Ta_L945ruDntpcG5Pne3dI_I0K5ePn9xdw5DBYv6YSfETnUs3N2dw36tIGnzWsqVERg-rfPRup4eIgZM69e_srX9VHg9kRXAUlofwhoPnxk");'></div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-text-main">Bob Jones</span>
+<span class="text-xs text-text-secondary">bob@koboard.io</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center rounded-md bg-indigo-100 px-2.5 py-0.5 text-xs font-medium text-indigo-800">
+                                            Editor
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-gray-300"></div>
+<span class="text-sm text-text-secondary">Offline</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-secondary hover:text-text-main p-1 rounded hover:bg-gray-200 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-gray-50 transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-4">
+<div class="relative">
+<div class="size-10 rounded-full bg-cover bg-center border border-gray-200" data-alt="Portrait of Charlie Day" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCF3V9UWi0X_aa4w69Yh3MpQmVY7kRNlwjbdhbAFKfxPq67nYS4APlHQkEtqszZEt93IzLudLkA6nt-tyb3ZaX3avD_pM9qfNGiIPZ9Qs-RcWk_huf1aEOrxBJnhx1LEIXlUJAU060qil-1AOpOLb4zoEhGyUttIfCzHRodqV2k1CZxfCajRPne2bPo-ApvxhI5eQWeOYVsOiHbIe3zkMfdAOzEOhrdgKsJKIMCq0FV6ZvmjkoyjVFHL-fBQGFkNSIz5Lxc1qqIc5c");'></div>
+<div class="absolute bottom-0 right-0 size-3 rounded-full border-2 border-white bg-green-500"></div>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-text-main">Charlie Day</span>
+<span class="text-xs text-text-secondary">charlie@koboard.io</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center rounded-md bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800">
+                                            Viewer
+                                        </span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-green-500"></div>
+<span class="text-sm text-text-secondary">Online</span>
+</div>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-text-secondary hover:text-text-main p-1 rounded hover:bg-gray-200 transition-colors">
+<span class="material-symbols-outlined text-[20px]">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+</div>
+</div>
+</div>
+</div>
+</body></html>

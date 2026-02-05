@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>KoBoard Landing Page</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#5048e5",
+                        "primary-dark": "#3e37b1",
+                        "background-light": "#ffffff",
+                        "background-subtle": "#f8f9fc",
+                        "background-dark": "#121121",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"],
+                        "sans": ["Inter", "sans-serif"],
+                    },
+                    borderRadius: {"DEFAULT": "0.375rem", "lg": "0.5rem", "xl": "0.75rem", "2xl": "1rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom 3D perspective styles */
+        .perspective-container {
+            perspective: 1200px;
+        }
+        .tilted-image {
+            transform: rotateX(12deg) rotateY(-4deg) rotateZ(2deg);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(0,0,0,0.03);
+            transition: transform 0.5s ease-out;
+        }
+        .tilted-image:hover {
+            transform: rotateX(5deg) rotateY(-2deg) rotateZ(1deg) translateY(-10px);
+        }
+        
+        /* Gradient Blob Animation */
+        @keyframes float {
+            0% { transform: translate(0px, 0px) scale(1); }
+            33% { transform: translate(30px, -50px) scale(1.1); }
+            66% { transform: translate(-20px, 20px) scale(0.9); }
+            100% { transform: translate(0px, 0px) scale(1); }
+        }
+        .animate-blob {
+            animation: float 7s infinite;
+        }
+        .animation-delay-2000 {
+            animation-delay: 2s;
+        }
+        .animation-delay-4000 {
+            animation-delay: 4s;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-x-hidden selection:bg-primary/20 selection:text-primary">
+<!-- Background Gradients -->
+<div class="fixed inset-0 z-0 overflow-hidden pointer-events-none">
+<div class="absolute top-0 left-1/4 w-96 h-96 bg-primary/20 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
+<div class="absolute top-0 right-1/4 w-96 h-96 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
+<div class="absolute -bottom-32 left-1/3 w-96 h-96 bg-pink-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+</div>
+<!-- Navigation -->
+<header class="sticky top-0 z-50 w-full backdrop-blur-md bg-white/80 border-b border-slate-100">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex items-center justify-between h-16">
+<!-- Logo -->
+<div class="flex-shrink-0 flex items-center gap-2">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+</div>
+<span class="text-xl font-bold tracking-tight text-slate-900">KoBoard</span>
+</div>
+<!-- Desktop Nav -->
+<nav class="hidden md:flex gap-8">
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Features</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Pricing</a>
+<a class="text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">About</a>
+</nav>
+<!-- Actions -->
+<div class="flex items-center gap-4">
+<a class="hidden md:block text-sm font-medium text-slate-600 hover:text-primary transition-colors" href="#">Sign In</a>
+<button class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-primary/20">
+                        Start for Free
+                    </button>
+</div>
+</div>
+</div>
+</header>
+<main class="relative z-10 flex flex-col items-center w-full">
+<!-- Hero Section -->
+<section class="w-full max-w-7xl px-4 sm:px-6 lg:px-8 pt-20 pb-32 flex flex-col items-center text-center">
+<!-- Text Content -->
+<div class="max-w-3xl mx-auto flex flex-col gap-6 items-center mb-16">
+<div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold tracking-wide uppercase mb-2 border border-primary/20">
+<span class="w-2 h-2 rounded-full bg-primary animate-pulse"></span>
+                    v2.0 Now Available
+                </div>
+<h1 class="text-5xl sm:text-6xl md:text-7xl font-black text-slate-900 tracking-tight leading-[1.1]">
+                    Think Together, <br/>
+<span class="text-transparent bg-clip-text bg-gradient-to-r from-primary to-purple-600">Infinitely.</span>
+</h1>
+<p class="text-lg sm:text-xl text-slate-600 max-w-2xl leading-relaxed">
+                    The AI-powered whiteboard for engineering teams. Turn rough ideas into executable code diagrams in seconds.
+                </p>
+<div class="flex flex-wrap justify-center gap-4 mt-4">
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white h-12 px-8 rounded-lg text-base font-bold transition-all shadow-xl shadow-primary/25 hover:-translate-y-0.5">
+<span>Start for Free</span>
+<span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+<button class="flex items-center gap-2 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 h-12 px-8 rounded-lg text-base font-bold transition-all hover:border-slate-300 hover:shadow-sm">
+<span class="material-symbols-outlined text-[20px] text-slate-500">play_circle</span>
+<span>Watch Demo</span>
+</button>
+</div>
+</div>
+<!-- 3D Image Visual -->
+<div class="w-full max-w-5xl mx-auto perspective-container px-4">
+<div class="tilted-image relative rounded-xl bg-slate-900 border-[6px] border-slate-900 overflow-hidden aspect-[16/9] group">
+<!-- Image Wrapper -->
+<img alt="Screenshot of KoBoard interface showing a flowchart and sticky notes on a dark canvas" class="w-full h-full object-cover opacity-90" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCPAyhzhXxUXQN6kQnxmp_OoeBwdcWVPZVqQrD2NnQC4sJX9tfNHbmr4tukfkqkcYSRlZHEZMBVUYOe9kRdKZQofkmCPu3afafKG7lg1eecgRJB8BfsCMEWOc_5ciB5FnXOnDFDkpPKldhk45PkZ9LCHG7nqQ3iSx8WaAvJjPgNfV4ooptwu2UJPGgQbP90QphmYdkera0wZoSi8TcvNdfMd1HJjWDd6Tux-UEMIf3rKgAryD6y-c3X426_grQY1fXhJbpcNcOyrfo"/>
+<!-- Overlay for depth -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent pointer-events-none"></div>
+<!-- Floating UI elements (Decorations) -->
+<div class="absolute top-10 left-10 bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-lg shadow-2xl animate-pulse">
+<div class="w-24 h-2 bg-white/40 rounded mb-2"></div>
+<div class="w-16 h-2 bg-white/20 rounded"></div>
+</div>
+<div class="absolute bottom-10 right-10 bg-primary/90 text-white backdrop-blur-md p-3 rounded-lg shadow-2xl flex items-center gap-3">
+<span class="material-symbols-outlined text-[20px]">check_circle</span>
+<span class="text-sm font-bold">Code Generated</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Social Proof / Trust Bar -->
+<section class="w-full border-y border-slate-100 bg-background-subtle py-10">
+<div class="max-w-7xl mx-auto px-4 text-center">
+<p class="text-sm font-medium text-slate-500 mb-6 uppercase tracking-wider">Trusted by engineering teams at</p>
+<div class="flex flex-wrap justify-center items-center gap-8 md:gap-16 opacity-60 grayscale hover:grayscale-0 transition-all duration-500">
+<!-- Using text as placeholders for logos to keep it generic but structured -->
+<div class="flex items-center gap-2 font-bold text-xl text-slate-700"><span class="material-symbols-outlined">verified_user</span> ACME Corp</div>
+<div class="flex items-center gap-2 font-bold text-xl text-slate-700"><span class="material-symbols-outlined">rocket_launch</span> StarShip</div>
+<div class="flex items-center gap-2 font-bold text-xl text-slate-700"><span class="material-symbols-outlined">diamond</span> GemStone</div>
+<div class="flex items-center gap-2 font-bold text-xl text-slate-700"><span class="material-symbols-outlined">bolt</span> BoltShift</div>
+<div class="flex items-center gap-2 font-bold text-xl text-slate-700"><span class="material-symbols-outlined">globe</span> GlobalBank</div>
+</div>
+</div>
+</section>
+<!-- Feature Section -->
+<section class="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+<div class="mb-16">
+<h2 class="text-3xl md:text-4xl font-black text-slate-900 mb-4 tracking-tight max-w-2xl">
+                    Engineered for collaboration,<br/>
+                    built for speed.
+                </h2>
+<p class="text-lg text-slate-600 max-w-2xl">
+                    Everything your team needs to move from idea to execution faster, without the clutter of traditional tools.
+                </p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+<!-- Feature 1 -->
+<div class="group p-8 rounded-2xl border border-slate-200 bg-white hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+<div class="w-12 h-12 rounded-lg bg-blue-50 flex items-center justify-center text-primary mb-6 group-hover:bg-primary group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[28px]">sync_alt</span>
+</div>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Real-time Sync</h3>
+<p class="text-slate-600 leading-relaxed">
+                        Collaborate with zero latency across the globe. Changes propagate instantly using our custom WebSocket engine.
+                    </p>
+</div>
+<!-- Feature 2 -->
+<div class="group p-8 rounded-2xl border border-slate-200 bg-white hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+<div class="w-12 h-12 rounded-lg bg-purple-50 flex items-center justify-center text-purple-600 mb-6 group-hover:bg-purple-600 group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[28px]">smart_toy</span>
+</div>
+<h3 class="text-xl font-bold text-slate-900 mb-2">AI Generation</h3>
+<p class="text-slate-600 leading-relaxed">
+                        Turn rough sketches into React code instantly. Our LLM understands context, arrows, and flowchart logic.
+                    </p>
+</div>
+<!-- Feature 3 -->
+<div class="group p-8 rounded-2xl border border-slate-200 bg-white hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5 transition-all duration-300">
+<div class="w-12 h-12 rounded-lg bg-orange-50 flex items-center justify-center text-orange-600 mb-6 group-hover:bg-orange-600 group-hover:text-white transition-colors">
+<span class="material-symbols-outlined text-[28px]">history</span>
+</div>
+<h3 class="text-xl font-bold text-slate-900 mb-2">Infinite History</h3>
+<p class="text-slate-600 leading-relaxed">
+                        Never lose a thought with version playback. Scroll back in time to see exactly how a decision was made.
+                    </p>
+</div>
+</div>
+</section>
+<!-- Bottom CTA -->
+<section class="w-full px-4 pb-20">
+<div class="max-w-5xl mx-auto bg-slate-900 rounded-3xl p-12 md:p-16 text-center relative overflow-hidden">
+<!-- Decorative background elements -->
+<div class="absolute top-0 right-0 w-64 h-64 bg-primary rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
+<div class="absolute bottom-0 left-0 w-64 h-64 bg-purple-600 rounded-full mix-blend-screen filter blur-3xl opacity-20"></div>
+<div class="relative z-10 flex flex-col items-center gap-6">
+<h2 class="text-3xl md:text-5xl font-bold text-white tracking-tight">Ready to think bigger?</h2>
+<p class="text-slate-400 text-lg max-w-xl">Join 10,000+ engineering teams shipping faster with KoBoard today.</p>
+<div class="flex flex-col sm:flex-row gap-4 mt-4 w-full justify-center">
+<button class="bg-primary hover:bg-primary-dark text-white h-12 px-8 rounded-lg text-base font-bold transition-all shadow-lg shadow-primary/30 min-w-[160px]">
+                            Get Started Free
+                        </button>
+<button class="bg-transparent border border-slate-700 hover:bg-white/10 text-white h-12 px-8 rounded-lg text-base font-bold transition-all min-w-[160px]">
+                            Contact Sales
+                        </button>
+</div>
+<p class="text-slate-500 text-sm mt-4">No credit card required. Free forever for individuals.</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Footer -->
+<footer class="bg-white border-t border-slate-100 py-12">
+<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+<div class="flex flex-col md:flex-row justify-between items-center gap-8">
+<div class="flex items-center gap-2">
+<div class="size-6 bg-slate-900 rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[16px]">dashboard</span>
+</div>
+<span class="text-lg font-bold text-slate-900">KoBoard</span>
+<span class="text-slate-400 text-sm ml-2">© 2023</span>
+</div>
+<div class="flex gap-8 flex-wrap justify-center">
+<a class="text-slate-500 hover:text-primary transition-colors text-sm font-medium" href="#">Terms</a>
+<a class="text-slate-500 hover:text-primary transition-colors text-sm font-medium" href="#">Privacy</a>
+<a class="text-slate-500 hover:text-primary transition-colors text-sm font-medium" href="#">Contact</a>
+<a class="text-slate-500 hover:text-primary transition-colors text-sm font-medium" href="#">Status</a>
+</div>
+<div class="flex gap-4">
+<a class="text-slate-400 hover:text-slate-900 transition-colors p-2 hover:bg-slate-100 rounded-full" href="#">
+<span class="material-symbols-outlined text-[20px]">flutter_dash</span> <!-- Twitter/X proxy -->
+</a>
+<a class="text-slate-400 hover:text-slate-900 transition-colors p-2 hover:bg-slate-100 rounded-full" href="#">
+<span class="material-symbols-outlined text-[20px]">code</span> <!-- GitHub proxy -->
+</a>
+<a class="text-slate-400 hover:text-slate-900 transition-colors p-2 hover:bg-slate-100 rounded-full" href="#">
+<span class="material-symbols-outlined text-[20px]">alternate_email</span>
+</a>
+</div>
+</div>
+</div>
+</footer>
+</body></html>

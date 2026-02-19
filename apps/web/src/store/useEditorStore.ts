@@ -8,7 +8,12 @@ interface EditorState {
   canUndo: boolean;
   canRedo: boolean;
   selectionInfo: SelectionInfo;
+  selectionBounds: { x: number; y: number; width: number; height: number } | null;
+  tool: 'select' | 'freehand';
+  freehandConfig: { stroke: string; strokeWidth: number };
   setEditor: (editor: Editor | null) => void;
+  setTool: (tool: 'select' | 'freehand') => void;
+  setFreehandConfig: (config: { stroke?: string; strokeWidth?: number }) => void;
   updateStats: (stats: { selectionCount: number; nodeCount: number }) => void;
   refreshAll: () => void;
   addRect: () => void;
@@ -37,6 +42,8 @@ interface EditorState {
   distributeVertical: () => void;
   groupSelected: () => void;
   ungroupSelected: () => void;
+  exportPNG: () => void;
+  exportSVG: () => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -46,7 +53,26 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   canUndo: false,
   canRedo: false,
   selectionInfo: { type: 'none' } as SelectionInfo,
+  selectionBounds: null,
+  tool: 'select',
+  freehandConfig: { stroke: '#000000', strokeWidth: 2 },
   setEditor: (editor) => set({ editor }),
+  setTool: (tool) => {
+    const editor = get().editor;
+    if (editor) {
+      editor.setTool(tool);
+      set({ tool });
+    }
+  },
+  setFreehandConfig: (config) => {
+    const editor = get().editor;
+    if (editor) {
+      editor.setFreehandConfig(config);
+      set((state) => ({
+        freehandConfig: { ...state.freehandConfig, ...config }
+      }));
+    }
+  },
   updateStats: (stats) => set(stats),
   refreshAll: () => {
     const editor = get().editor;
@@ -55,6 +81,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
         canUndo: editor.canUndo(),
         canRedo: editor.canRedo(),
         selectionInfo: editor.getSelectionInfo(),
+        selectionBounds: editor.getSelectionScreenBounds(),
         nodeCount: editor.scene.nodes.length,
         selectionCount: editor.scene.nodes.filter(n => n.isSelected).length,
       });
@@ -134,4 +161,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   distributeVertical: () => get().editor?.distributeVertical(),
   groupSelected: () => get().editor?.groupSelected(),
   ungroupSelected: () => get().editor?.ungroupSelected(),
+  exportPNG: () => get().editor?.exportPNG(),
+  exportSVG: () => get().editor?.exportSVG(),
 }));

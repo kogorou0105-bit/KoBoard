@@ -152,9 +152,9 @@ function ShapePanel() {
       <Divider />
       <SectionTitle icon="label" title="Label" />
       <TextInput label="" value={info.label} onChange={v => set({ label: v })} placeholder="Double-click to edit" />
-      <div className="grid grid-cols-2 gap-2 mt-2">
-        <NumberInput label="Sz" value={info.labelFontSize} onChange={v => set({ labelFontSize: Math.max(6, v) })} />
-        <ColorInput label="Cl" value={info.labelColor} onChange={v => set({ labelColor: v })} />
+      <div className="flex flex-col gap-2 mt-2">
+        <NumberInput label="TS" value={info.labelFontSize} onChange={v => set({ labelFontSize: Math.max(6, v) })} />
+        <ColorInput label="TC" value={info.labelColor} onChange={v => set({ labelColor: v })} />
       </div>
     </>
   );
@@ -226,9 +226,36 @@ function LinePanel() {
       <Divider />
       <SectionTitle icon="label" title="Label" />
       <TextInput label="" value={info.label} onChange={v => set({ label: v })} placeholder="e.g. gRPC, TCP:3306" />
-      <div className="grid grid-cols-2 gap-2 mt-2">
-        <NumberInput label="Sz" value={info.labelFontSize} onChange={v => set({ labelFontSize: Math.max(6, v) })} />
-        <ColorInput label="Cl" value={info.labelColor} onChange={v => set({ labelColor: v })} />
+      <div className="flex flex-col gap-2 mt-2">
+        <NumberInput label="Text Size" value={info.labelFontSize} onChange={v => set({ labelFontSize: Math.max(6, v) })} />
+        <ColorInput label="Text Color" value={info.labelColor} onChange={v => set({ labelColor: v })} />
+      </div>
+    </>
+  );
+}
+
+
+function FreehandPanel() {
+  const info = useEditorStore(s => s.selectionInfo);
+  const update = useEditorStore(s => s.updateSelectedNodes);
+  if (info.type !== 'freehand') return null;
+
+  const set = (p: NodeProps) => update(p);
+
+  return (
+    <>
+      <SectionTitle icon="draw" title="Freehand" />
+      <div className="grid grid-cols-2 gap-2">
+        <NumberInput label="X" value={info.x} onChange={v => set({ x: v })} />
+        <NumberInput label="Y" value={info.y} onChange={v => set({ y: v })} />
+        <NumberInput label="W" value={info.width} onChange={v => set({ width: Math.max(10, v) })} />
+        <NumberInput label="H" value={info.height} onChange={v => set({ height: Math.max(10, v) })} />
+      </div>
+      <Divider />
+      <SectionTitle icon="border_color" title="Stroke" />
+      <ColorInput label="" value={info.stroke} onChange={v => set({ stroke: v })} />
+      <div className="mt-2">
+        <NumberInput label="Wt" value={info.strokeWidth} onChange={v => set({ strokeWidth: Math.max(1, v) })} />
       </div>
     </>
   );
@@ -245,6 +272,27 @@ function AlignBtn({ icon, title, onClick }: { icon: string; title: string; onCli
     >
       <span className="material-symbols-outlined text-[18px]">{icon}</span>
     </button>
+  );
+}
+
+
+function DefaultFreehandPanel() {
+  const config = useEditorStore(s => s.freehandConfig);
+  const setConfig = useEditorStore(s => s.setFreehandConfig);
+
+  return (
+    <>
+      <SectionTitle icon="draw" title="Freehand Tool" />
+      <p className="text-xs text-slate-400 dark:text-slate-500 mb-4 px-1">
+        Adjust style for new strokes.
+      </p>
+      
+      <SectionTitle icon="border_color" title="Default Stroke" />
+      <ColorInput label="" value={config.stroke} onChange={v => setConfig({ stroke: v })} />
+      <div className="mt-2">
+        <NumberInput label="Wt" value={config.strokeWidth} onChange={v => setConfig({ strokeWidth: Math.max(1, v) })} />
+      </div>
+    </>
   );
 }
 
@@ -290,78 +338,6 @@ function AlignmentControls() {
   );
 }
 
-// ============ Multi-Selection Panel ============
-
-function MultiPanel() {
-  const info = useEditorStore(s => s.selectionInfo);
-  const update = useEditorStore(s => s.updateSelectedNodes);
-  
-  if (info.type !== 'multi') return null;
-
-  const set = (p: NodeProps) => update(p);
-
-  return (
-    <>
-      <AlignmentControls />
-
-      <SectionTitle icon="select_all" title={`Selected (${info.count})`} />
-      
-      {/* Common Properties: X, Y, W, H */}
-      <div className="grid grid-cols-2 gap-2 mb-4">
-        <NumberInput label="X" value={info.x} onChange={v => set({ x: v })} />
-        <NumberInput label="Y" value={info.y} onChange={v => set({ y: v })} />
-        <NumberInput label="W" value={info.width} onChange={v => set({ width: Math.max(10, v) })} />
-        <NumberInput label="H" value={info.height} onChange={v => set({ height: Math.max(10, v) })} />
-      </div>
-
-      {/* Shape Properties (Fill/Stroke) - Only if selection contains shapes */}
-      {(info.fill !== undefined || info.stroke !== undefined) && (
-        <>
-          <Divider />
-          {info.fill !== undefined && (
-            <>
-              <SectionTitle icon="format_paint" title="Fill" />
-              <ColorInput label="" value={info.fill} onChange={v => set({ fill: v })} />
-            </>
-          )}
-          {info.stroke !== undefined && (
-            <>
-             <div className="mt-3">
-              <SectionTitle icon="border_color" title="Stroke" />
-              <ColorInput label="" value={info.stroke} onChange={v => set({ stroke: v })} />
-             </div>
-            </>
-          )}
-        </>
-      )}
-
-      {/* Text Properties - Only if selection contains text */}
-      {(info.fontSize !== undefined || info.color !== undefined) && (
-        <>
-          <Divider />
-          <SectionTitle icon="text_fields" title="Text" />
-          {info.fontSize !== undefined && (
-             <NumberInput label="Size" value={info.fontSize} onChange={v => set({ fontSize: Math.max(6, v) })} />
-          )}
-          {info.color !== undefined && (
-             <div className="mt-2">
-               <ColorInput label="Color" value={info.color} onChange={v => set({ color: v })} />
-             </div>
-          )}
-        </>
-      )}
-
-      {/* Line Properties */}
-      {info.lineWidth !== undefined && (
-        <>
-          <Divider />
-          <SectionTitle icon="remove" title="Line" />
-          <NumberInput label="Width" value={info.lineWidth} onChange={v => set({ lineWidth: Math.max(1, v) })} />
-        </>
-      )}
-    </>
-  );
-}
 
 // ============ Layer & Action Controls ============
 
@@ -420,6 +396,7 @@ export function PropertyPanel() {
   const selectionInfo = useEditorStore(s => s.selectionInfo);
   const clearAll = useEditorStore(s => s.clearAll);
   const nodeCount = useEditorStore(s => s.nodeCount);
+  const tool = useEditorStore(s => s.tool);
   const hasSelection = selectionInfo.type !== 'none';
 
   return (
@@ -431,11 +408,27 @@ export function PropertyPanel() {
 
       {/* Content */}
       <div className="flex-1 overflow-y-auto px-4 py-3">
-        {selectionInfo.type === 'none' && <NoSelectionPanel />}
+        {selectionInfo.type === 'none' && (
+          tool === 'freehand' 
+            ? <DefaultFreehandPanel /> 
+            : <NoSelectionPanel />
+        )}
         {(selectionInfo.type === 'rect' || selectionInfo.type === 'circle') && <ShapePanel />}
         {selectionInfo.type === 'text' && <TextPanel />}
         {selectionInfo.type === 'line' && <LinePanel />}
-        {selectionInfo.type === 'multi' && <MultiPanel />}
+        {selectionInfo.type === 'freehand' && <FreehandPanel />}
+        {selectionInfo.type === 'multi' && (
+          <>
+            <div className="border-b border-slate-100 dark:border-gray-700/50 pb-4 mb-4">
+               <AlignmentControls />
+            </div>
+            <div className="flex flex-col items-center justify-center p-8 text-center text-slate-400">
+               <span className="material-symbols-outlined text-4xl mb-2 opacity-50">select_all</span>
+               <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Multiple objects selected</p>
+               <p className="text-xs mt-1 opacity-70">Property editing is disabled for multi-selection to avoid accidental changes.</p>
+            </div>
+          </>
+        )}
 
         {/* Layer controls (shown for any selection) */}
         {hasSelection && <LayerControls />}
@@ -457,3 +450,4 @@ export function PropertyPanel() {
     </aside>
   );
 }
+

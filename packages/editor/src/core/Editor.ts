@@ -1,7 +1,7 @@
 import { Viewport } from './Viewport';
 import { Scene } from '../scene/Scene';
 import type { SceneData } from '../scene/Scene';
-import { RectNode, TextNode, CircleNode, LineNode } from '../scene/SceneNode';
+import { RectNode, TextNode, CircleNode, LineNode, FreehandNode } from '../scene/SceneNode';
 import type { SelectionInfo, NodeProps, MultiSelectionInfo } from './types';
 import type { LineBinding } from '../scene/SceneNode';
 
@@ -26,9 +26,30 @@ export class Editor {
   private boxStart: { x: number; y: number } | null = null;
   private boxCurrent: { x: number; y: number } | null = null;
 
+  // Clipboard for copy/paste
+  private clipboard: SceneData | null = null;
+  private pasteOffset: number = 0;
+
   // Transform Handles
   private static HANDLE_SIZE = 8;
   private static SNAP_DISTANCE = 12; // world-space snap threshold
+
+  // Active tool
+  private _tool: 'select' | 'freehand' = 'select';
+  
+  get tool() { return this._tool; }
+  setTool(tool: 'select' | 'freehand') {
+    this._tool = tool;
+    this.canvas.style.cursor = tool === 'freehand' ? 'crosshair' : 'default';
+  }
+
+  // Default styles for new freehand nodes
+  freehandConfig = { stroke: '#000000', strokeWidth: 2 };
+
+  setFreehandConfig(config: { stroke?: string; strokeWidth?: number }) {
+    if (config.stroke !== undefined) this.freehandConfig.stroke = config.stroke;
+    if (config.strokeWidth !== undefined) this.freehandConfig.strokeWidth = config.strokeWidth;
+  }
 
   constructor(canvas: HTMLCanvasElement) {
     this.canvas = canvas;
@@ -108,6 +129,49 @@ export class Editor {
        // Standard is Space+Drag, which requires `keydown` tracking.
        // Let's stick to Middle Click or Shift+Click for now.
        const isPan = e.button === 1 || (e.button === 0 && (e.ctrlKey || e.metaKey || e.shiftKey));
+
+       // Freehand drawing mode
+       if (!isPan && this._tool === 'freehand' && e.button === 0) {
+         const { x: wx, y: wy } = this.viewport.screenToWorld(e.offsetX, e.offsetY);
+         const node = new FreehandNode(crypto.randomUUID());
+         
+         // Apply default config
+         node.stroke = this.freehandConfig.stroke;
+         node.strokeWidth = this.freehandConfig.strokeWidth;
+
+         const currentPoints = [{ x: wx, y: wy }];
+         node.setPoints(currentPoints);
+         
+         this.scene.addNode(node);
+
+         const onMove = (ev: MouseEvent) => {
+           const { x: mx, y: my } = this.viewport.screenToWorld(ev.offsetX, ev.offsetY);
+           currentPoints.push({ x: mx, y: my });
+           node.setPoints(currentPoints);
+           this.render();
+         };
+
+         const onUp = () => {
+           window.removeEventListener('mousemove', onMove);
+           window.removeEventListener('mouseup', onUp);
+           
+           if (node.points.length < 2) {
+             // Too short, remove
+             this.scene.removeNode(node.id);
+           } else {
+             // Finalize (setPoints calls updateBounds internally logic)
+             node.setPoints(currentPoints);
+             this.pushSnapshot();
+           }
+           this.render();
+           this.emitChange();
+         };
+
+
+         window.addEventListener('mousemove', onMove);
+         window.addEventListener('mouseup', onUp);
+         return;
+       }
        
        if (isPan) {
          let lastX = startX;
@@ -303,10 +367,11 @@ export class Editor {
         nMaxY = Math.max(node.y, node.endY);
         const lMinX = Math.min(node.x, node.endX);
         const lMinY = Math.min(node.y, node.endY);
-        return !(minX > nMaxX || maxX < lMinX || minY > nMaxY || maxY < lMinY);
+        // Strict containment: Node L/R/T/B must be within Box L/R/T/B
+        return lMinX >= minX && nMaxX <= maxX && lMinY >= minY && nMaxY <= maxY;
     }
 
-    return !(minX > nMaxX || maxX < nMinX || minY > nMaxY || maxY < nMinY);
+    return nMinX >= minX && nMaxX <= maxX && nMinY >= minY && nMaxY <= maxY;
   }
 
   addRect() {
@@ -635,8 +700,11 @@ export class Editor {
     this.ctx.transform(t[0], t[1], t[2], t[3], t[4], t[5]);
 
 
-    // Draw Scene
-    this.scene.render(this.ctx);
+    // Compute visible world bounds for viewport culling
+    const viewBounds = this.getViewBounds();
+
+    // Draw Scene (only visible nodes)
+    this.scene.render(this.ctx, viewBounds);
 
     // Draw Transform Handles
     this.renderGroupIndicators();
@@ -651,6 +719,20 @@ export class Editor {
     this.ctx.fillText("世界原点 (0,0)", 5, -5);
     this.ctx.restore();
   };
+
+  /** Compute the visible world-space bounding rect for viewport culling */
+  private getViewBounds() {
+    const topLeft = this.viewport.screenToWorld(0, 0);
+    const bottomRight = this.viewport.screenToWorld(this.width, this.height);
+    // Add a generous pad so nodes partially onscreen still render
+    const pad = 100 / this.viewport.scale;
+    return {
+      minX: topLeft.x - pad,
+      minY: topLeft.y - pad,
+      maxX: bottomRight.x + pad,
+      maxY: bottomRight.y + pad,
+    };
+  }
 
   drawGrid() {
     // Grid removed — clean canvas
@@ -771,6 +853,9 @@ export class Editor {
       if (node instanceof LineNode) {
         return { type: 'line', id: node.id, x: node.x, y: node.y, endX: node.endX, endY: node.endY, stroke: node.stroke, lineWidth: node.lineWidth, startArrow: node.startArrow, endArrow: node.endArrow, label: node.label, labelFontSize: node.labelFontSize, labelColor: node.labelColor };
       }
+      if (node instanceof FreehandNode) {
+        return { type: 'freehand', id: node.id, x: node.x, y: node.y, width: node.width, height: node.height, stroke: node.stroke, strokeWidth: node.strokeWidth };
+      }
       return { type: 'none' };
     }
 
@@ -779,12 +864,13 @@ export class Editor {
       return values.every(v => v === values[0]) ? values[0] : 'mixed';
     };
 
-    const nodeTypes = new Set<'rect' | 'circle' | 'text' | 'line'>();
+    const nodeTypes = new Set<'rect' | 'circle' | 'text' | 'line' | 'freehand'>();
     for (const node of selected) {
       if (node instanceof RectNode) nodeTypes.add('rect');
       else if (node instanceof CircleNode) nodeTypes.add('circle');
       else if (node instanceof TextNode) nodeTypes.add('text');
       else if (node instanceof LineNode) nodeTypes.add('line');
+      else if (node instanceof FreehandNode) nodeTypes.add('freehand');
     }
 
     const info: MultiSelectionInfo = {
@@ -858,6 +944,10 @@ export class Editor {
         if (props.labelFontSize !== undefined) node.labelFontSize = props.labelFontSize;
         if (props.labelColor !== undefined) node.labelColor = props.labelColor;
       }
+      if (node instanceof FreehandNode) {
+        if (props.stroke !== undefined) node.stroke = props.stroke;
+        if (props.strokeWidth !== undefined) node.strokeWidth = props.strokeWidth;
+      }
     }
     this.render();
     this.emitChange();
@@ -874,6 +964,218 @@ export class Editor {
     this.scene.loadFromJSON(data);
     this.render();
     this.emitChange();
+  }
+
+  // ============ Copy / Paste ============
+
+  copySelected() {
+    const selected = this.scene.nodes.filter(n => n.isSelected);
+    if (selected.length === 0) return;
+
+    this.clipboard = {
+      nodes: selected.map(n => n.toJSON()),
+    };
+    this.pasteOffset = 0; // reset offset on new copy
+  }
+
+  pasteClipboard() {
+    if (!this.clipboard || this.clipboard.nodes.length === 0) return;
+
+    this.pasteOffset += 20; // stagger each paste
+
+    // Build old-ID -> new-ID map
+    const idMap = new Map<string, string>();
+    for (const nd of this.clipboard.nodes) {
+      idMap.set(nd.id, crypto.randomUUID());
+    }
+
+    // Deep clone + remap
+    const cloned = JSON.parse(JSON.stringify(this.clipboard.nodes)) as typeof this.clipboard.nodes;
+    for (const nd of cloned) {
+      const newId = idMap.get(nd.id)!;
+      nd.id = newId;
+
+      // Offset position
+      nd.x += this.pasteOffset;
+      nd.y += this.pasteOffset;
+
+      // Remap parentId
+      if (nd.parentId) {
+        nd.parentId = idMap.get(nd.parentId) ?? undefined;
+      }
+
+      // Remap line bindings
+      if (nd.type === 'line') {
+        const lineData = nd as any;
+        if (lineData.startBinding?.nodeId) {
+          const mapped = idMap.get(lineData.startBinding.nodeId);
+          if (mapped) {
+            lineData.startBinding.nodeId = mapped;
+          } else {
+            lineData.startBinding = null; // bound node not in clipboard
+          }
+        }
+        if (lineData.endBinding?.nodeId) {
+          const mapped = idMap.get(lineData.endBinding.nodeId);
+          if (mapped) {
+            lineData.endBinding.nodeId = mapped;
+          } else {
+            lineData.endBinding = null;
+          }
+        }
+      }
+    }
+
+    // Deselect current, then add & select pasted nodes
+    this.scene.nodes.forEach(n => n.isSelected = false);
+
+    const tempScene: SceneData = { nodes: cloned };
+    const before = this.scene.nodes.length;
+    this.scene.loadFromJSON({ nodes: [...this.scene.toJSON().nodes, ...tempScene.nodes] });
+
+    // Select only the newly added nodes
+    for (let i = before; i < this.scene.nodes.length; i++) {
+      this.scene.nodes[i].isSelected = true;
+    }
+
+    this.updateLineBindings();
+    this.pushSnapshot();
+    this.render();
+    this.emitChange();
+  }
+
+
+  duplicateSelected() {
+    this.copySelected();
+    this.pasteClipboard();
+  }
+
+  exportPNG() {
+    // Render all nodes (no culling) without selection visuals
+    const selected = this.scene.nodes.filter(n => n.isSelected);
+    selected.forEach(n => n.isSelected = false);
+
+    // Temporarily render without culling for full export
+    this.ctx.clearRect(0, 0, this.width, this.height);
+    this.ctx.save();
+    const t = this.viewport.transform;
+    this.ctx.transform(t[0], t[1], t[2], t[3], t[4], t[5]);
+    this.scene.render(this.ctx); // no viewBounds = render all
+    this.ctx.restore();
+
+    const dataUrl = this.canvas.toDataURL('image/png');
+
+    // Restore selection & re-render normally
+    selected.forEach(n => n.isSelected = true);
+    this.render();
+
+    // Download
+    const a = document.createElement('a');
+    a.href = dataUrl;
+    a.download = `koboard-${Date.now()}.png`;
+    a.click();
+  }
+
+  exportSVG() {
+    const nodes = this.scene.nodes;
+    let svgContent = '';
+
+    // Compute bounding box of all nodes
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of nodes) {
+      minX = Math.min(minX, n.x);
+      minY = Math.min(minY, n.y);
+      maxX = Math.max(maxX, n.x + n.width);
+      maxY = Math.max(maxY, n.y + n.height);
+    }
+
+    const pad = 20;
+    const vw = maxX - minX + pad * 2;
+    const vh = maxY - minY + pad * 2;
+    const ox = minX - pad;
+    const oy = minY - pad;
+
+    for (const n of nodes) {
+      if (n instanceof RectNode) {
+        svgContent += `  <rect x="${n.x - ox}" y="${n.y - oy}" width="${n.width}" height="${n.height}" fill="${n.fill}" stroke="${n.stroke}" stroke-width="1" />\n`;
+        if (n.label) {
+          const lines = n.label.split('\n');
+          const lh = n.labelFontSize * 1.3;
+          const cy = n.y - oy + n.height / 2 - (lines.length - 1) * lh / 2;
+          lines.forEach((line, i) => {
+            svgContent += `  <text x="${n.x - ox + n.width / 2}" y="${cy + i * lh}" text-anchor="middle" dominant-baseline="central" font-size="${n.labelFontSize}" fill="${n.labelColor}" font-family="sans-serif">${this.escSvg(line)}</text>\n`;
+          });
+        }
+      } else if (n instanceof CircleNode) {
+        const cx = n.x - ox + n.width / 2;
+        const cy = n.y - oy + n.height / 2;
+        svgContent += `  <ellipse cx="${cx}" cy="${cy}" rx="${n.width / 2}" ry="${n.height / 2}" fill="${n.fill}" stroke="${n.stroke}" stroke-width="1" />\n`;
+        if (n.label) {
+          const lines = n.label.split('\n');
+          const lh = n.labelFontSize * 1.3;
+          const ty = cy - (lines.length - 1) * lh / 2;
+          lines.forEach((line, i) => {
+            svgContent += `  <text x="${cx}" y="${ty + i * lh}" text-anchor="middle" dominant-baseline="central" font-size="${n.labelFontSize}" fill="${n.labelColor}" font-family="sans-serif">${this.escSvg(line)}</text>\n`;
+          });
+        }
+      } else if (n instanceof TextNode) {
+        const lines = n.text.split('\n');
+        const lh = n.fontSize * 1.3;
+        lines.forEach((line, i) => {
+          svgContent += `  <text x="${n.x - ox}" y="${n.y - oy + i * lh}" dominant-baseline="hanging" font-size="${n.fontSize}" fill="${n.color}" font-family="sans-serif">${this.escSvg(line)}</text>\n`;
+        });
+      } else if (n instanceof LineNode) {
+        svgContent += `  <line x1="${n.x - ox}" y1="${n.y - oy}" x2="${n.endX - ox}" y2="${n.endY - oy}" stroke="${n.stroke}" stroke-width="${n.lineWidth}" />\n`;
+        // Arrows as markers would be complex; skip for SVG export
+        if (n.label) {
+          const mx = (n.x + n.endX) / 2 - ox;
+          const my = (n.y + n.endY) / 2 - oy;
+          const lines = n.label.split('\n');
+          const lh = n.labelFontSize * 1.3;
+          const ty = my - (lines.length - 1) * lh / 2;
+          lines.forEach((line, i) => {
+            svgContent += `  <text x="${mx}" y="${ty + i * lh}" text-anchor="middle" dominant-baseline="central" font-size="${n.labelFontSize}" fill="${n.labelColor}" font-family="sans-serif">${this.escSvg(line)}</text>\n`;
+          });
+        }
+      }
+    }
+
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${vw}" height="${vh}" viewBox="0 0 ${vw} ${vh}">\n  <rect width="100%" height="100%" fill="white" />\n${svgContent}</svg>`;
+
+    const blob = new Blob([svg], { type: 'image/svg+xml' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `koboard-${Date.now()}.svg`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  private escSvg(s: string): string {
+    return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+  }
+
+  // ============ Selection Bounds (for floating toolbar) ============
+
+  getSelectionScreenBounds(): { x: number; y: number; width: number; height: number } | null {
+    const selected = this.scene.nodes.filter(n => n.isSelected);
+    if (selected.length === 0) return null;
+
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const n of selected) {
+      minX = Math.min(minX, n.x);
+      minY = Math.min(minY, n.y);
+      maxX = Math.max(maxX, n.x + n.width);
+      maxY = Math.max(maxY, n.y + n.height);
+    }
+
+    const t = this.viewport.transform;
+    const sx = minX * t[0] + t[4];
+    const sy = minY * t[3] + t[5];
+    const sw = (maxX - minX) * t[0];
+    const sh = (maxY - minY) * t[3];
+
+    return { x: sx, y: sy, width: sw, height: sh };
   }
   
   // Override render to emit change? 
@@ -921,15 +1223,27 @@ export class Editor {
     if (selectedNodes.length === 0) return;
 
     const size = Editor.HANDLE_SIZE / this.viewport.scale;
-    const half = size / 2;
+    const radius = size / 2;
+    const padding = 6 / this.viewport.scale; // Padding for the dashed box
 
     this.ctx.save();
-    this.ctx.strokeStyle = '#0066cc';
-    this.ctx.fillStyle = '#ffffff';
-    this.ctx.lineWidth = 1 / this.viewport.scale;
-
+    
     for (const node of selectedNodes) {
       const { x, y, width, height } = node;
+
+      // 1. Draw Padded Dashed Box
+      this.ctx.beginPath();
+      this.ctx.strokeStyle = '#60a5fa'; // Light blue (Tailwind blue-400)
+      this.ctx.lineWidth = 1 / this.viewport.scale;
+      this.ctx.setLineDash([4 / this.viewport.scale, 4 / this.viewport.scale]);
+      this.ctx.strokeRect(x - padding, y - padding, width + padding * 2, height + padding * 2);
+      
+      // 2. Draw Handles
+      this.ctx.setLineDash([]); // Reset dash for handles
+      this.ctx.strokeStyle = '#2563eb'; // Blue (Tailwind blue-600)
+      this.ctx.fillStyle = '#ffffff';
+      this.ctx.lineWidth = 1.5 / this.viewport.scale;
+
       // 8 handles
       const positions = [
         { x: x, y: y },                         // nw
@@ -944,7 +1258,7 @@ export class Editor {
 
       for (const pos of positions) {
         this.ctx.beginPath();
-        this.ctx.rect(pos.x - half, pos.y - half, size, size);
+        this.ctx.arc(pos.x, pos.y, radius, 0, Math.PI * 2);
         this.ctx.fill();
         this.ctx.stroke();
       }
@@ -986,6 +1300,12 @@ export class Editor {
     const startY = e.clientY;
     
     const initialRaw = { x: node.x, y: node.y, w: node.width, h: node.height };
+    
+    let initialPoints: {x: number, y: number}[] | null = null;
+    if (node instanceof FreehandNode) {
+      // Deep copy points
+      initialPoints = node.points.map(p => ({ ...p }));
+    }
 
     const onMove = (ev: MouseEvent) => {
         // Calculate delta in world coordinates
@@ -1041,6 +1361,18 @@ export class Editor {
              break;
         }
 
+        if (node instanceof FreehandNode && initialPoints) {
+           const scaleX = newW / initialRaw.w;
+           const scaleY = newH / initialRaw.h;
+           // Protect against zero division or zero size
+           if (initialRaw.w > 0 && initialRaw.h > 0) {
+             node.points = initialPoints.map(p => ({
+               x: p.x * scaleX,
+               y: p.y * scaleY
+             }));
+           }
+        }
+
         node.x = newX;
         node.y = newY;
         node.width = newW;
@@ -1094,6 +1426,15 @@ export class Editor {
             } else {
                 this.groupSelected();
             }
+        } else if (e.key.toLowerCase() === 'c') {
+            e.preventDefault();
+            this.copySelected();
+        } else if (e.key.toLowerCase() === 'v') {
+            e.preventDefault();
+            this.pasteClipboard();
+        } else if (e.key.toLowerCase() === 'd') {
+            e.preventDefault();
+            this.duplicateSelected();
         }
     }
   };
@@ -1206,10 +1547,11 @@ export class Editor {
         this.render();
         return;
       }
-      if (ev.key === 'Enter' && !ev.shiftKey) {
+      if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
         ev.preventDefault();
         commit();
       }
+      // Plain Enter = natural newline (textarea default)
     };
 
     textarea.addEventListener('blur', commit);
@@ -1297,10 +1639,11 @@ export class Editor {
         this.render();
         return;
       }
-      if (ev.key === 'Enter' && !ev.shiftKey) {
+      if (ev.key === 'Enter' && (ev.ctrlKey || ev.metaKey)) {
         ev.preventDefault();
         commit();
       }
+      // Plain Enter = natural newline (textarea default)
     };
 
     textarea.addEventListener('blur', commit);

@@ -58,6 +58,17 @@ export interface LineSelectionInfo {
   labelColor: string;
 }
 
+export interface FreehandSelectionInfo {
+  type: 'freehand';
+  id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+  stroke: string;
+  strokeWidth: number;
+}
+
 /** A value that may be the same across all selected nodes, or mixed */
 export type MixedValue<T> = T | 'mixed';
 
@@ -66,7 +77,7 @@ export interface MultiSelectionInfo {
   count: number;
   ids: string[];
   /** Which node types are in the selection */
-  nodeTypes: ('rect' | 'circle' | 'text' | 'line')[];
+  nodeTypes: ('rect' | 'circle' | 'text' | 'line' | 'freehand')[];
   /** Common properties — shown for all selections */
   x: MixedValue<number>;
   y: MixedValue<number>;
@@ -88,6 +99,7 @@ export type SelectionInfo =
   | CircleSelectionInfo
   | TextSelectionInfo
   | LineSelectionInfo
+  | FreehandSelectionInfo
   | MultiSelectionInfo;
 
 // ============ Node Property Update Bag ============
@@ -109,4 +121,5 @@ export interface NodeProps {
   labelColor?: string;
   startArrow?: boolean;
   endArrow?: boolean;
+  strokeWidth?: number;
 }

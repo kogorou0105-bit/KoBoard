@@ -1,4 +1,4 @@
-import { SceneNode, RectNode, TextNode, CircleNode, LineNode } from './SceneNode';
+import { SceneNode, RectNode, TextNode, CircleNode, LineNode, FreehandNode } from './SceneNode';
 import type { AnyNodeData } from './SceneNode';
 
 // ============ Scene Data Schema ============
@@ -20,17 +20,48 @@ export class Scene {
     this.nodes = this.nodes.filter(n => n.id !== id);
   }
 
-  render(ctx: CanvasRenderingContext2D) {
+  render(ctx: CanvasRenderingContext2D, viewBounds?: { minX: number; minY: number; maxX: number; maxY: number }) {
     for (const node of this.nodes) {
+      if (viewBounds) {
+        // For LineNode, endX/endY may extend beyond x+width/y+height
+        const nx = node.x;
+        const ny = node.y;
+        const nw = node.width;
+        const nh = node.height;
+        // Compute axis-aligned bounding box (handles negative width/height for lines)
+        const nodeMinX = Math.min(nx, nx + nw);
+        const nodeMaxX = Math.max(nx, nx + nw);
+        const nodeMinY = Math.min(ny, ny + nh);
+        const nodeMaxY = Math.max(ny, ny + nh);
+        if (nodeMaxX < viewBounds.minX || nodeMinX > viewBounds.maxX ||
+            nodeMaxY < viewBounds.minY || nodeMinY > viewBounds.maxY) {
+          continue;
+        }
+      }
       node.render(ctx);
     }
   }
 
-  hitTest(x: number, y: number): SceneNode | null {
+  hitTest(x: number, y: number, viewBounds?: { minX: number; minY: number; maxX: number; maxY: number }): SceneNode | null {
     // Iterate in reverse (top to bottom)
     for (let i = this.nodes.length - 1; i >= 0; i--) {
-      if (this.nodes[i].hitTest(x, y)) {
-        return this.nodes[i];
+      const node = this.nodes[i];
+      if (viewBounds) {
+        const nx = node.x;
+        const ny = node.y;
+        const nw = node.width;
+        const nh = node.height;
+        const nodeMinX = Math.min(nx, nx + nw);
+        const nodeMaxX = Math.max(nx, nx + nw);
+        const nodeMinY = Math.min(ny, ny + nh);
+        const nodeMaxY = Math.max(ny, ny + nh);
+        if (nodeMaxX < viewBounds.minX || nodeMinX > viewBounds.maxX ||
+            nodeMaxY < viewBounds.minY || nodeMinY > viewBounds.maxY) {
+          continue;
+        }
+      }
+      if (node.hitTest(x, y)) {
+        return node;
       }
     }
     return null;
@@ -62,6 +93,9 @@ export class Scene {
         case 'line':
           node = LineNode.fromJSON(nodeData as any);
           break;
+        case 'freehand':
+          node = FreehandNode.fromJSON(nodeData as any);
+          break;
         default:
           console.warn(`Unknown node type: ${(nodeData as any).type}`);
       }
@@ -87,6 +121,9 @@ export class Scene {
           break;
         case 'line':
           node = LineNode.fromJSON(nodeData as any);
+          break;
+        case 'freehand':
+          node = FreehandNode.fromJSON(nodeData as any);
           break;
         default:
           console.warn(`Unknown node type: ${(nodeData as any).type}`);

@@ -63,6 +63,7 @@ export interface RectNodeData extends SceneNodeData {
   type: 'rect';
   fill: string;
   stroke: string;
+  cornerRadius?: number;
   label?: string;
   labelFontSize?: number;
   labelColor?: string;
@@ -102,7 +103,14 @@ export interface LineNodeData extends SceneNodeData {
   labelColor?: string;
 }
 
-export type AnyNodeData = RectNodeData | TextNodeData | CircleNodeData | LineNodeData;
+export interface FreehandNodeData extends SceneNodeData {
+  type: 'freehand';
+  points: { x: number; y: number }[];
+  stroke: string;
+  strokeWidth: number;
+}
+
+export type AnyNodeData = RectNodeData | TextNodeData | CircleNodeData | LineNodeData | FreehandNodeData;
 
 // ============ Scene Node Classes ============
 
@@ -130,18 +138,55 @@ export abstract class SceneNode {
 export class RectNode extends SceneNode {
   fill: string = '#ffffff';
   stroke: string = '#000000';
+  cornerRadius: number = 0;
   label: string = '';
   labelFontSize: number = 14;
   labelColor: string = '#333333';
 
   render(ctx: CanvasRenderingContext2D) {
+    ctx.save();
+    // Drop Shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.05)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+
     ctx.beginPath();
-    ctx.rect(this.x, this.y, this.width, this.height);
+    if (this.cornerRadius > 0) {
+        // Draw rounded rect manually for compatibility
+        const x = this.x;
+        const y = this.y;
+        const w = this.width;
+        const h = this.height;
+        const r = Math.min(this.cornerRadius, Math.min(w, h) / 2);
+        
+        ctx.moveTo(x + r, y);
+        ctx.lineTo(x + w - r, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+        ctx.lineTo(x + w, y + h - r);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+        ctx.lineTo(x + r, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+        ctx.lineTo(x, y + r);
+        ctx.quadraticCurveTo(x, y, x + r, y);
+        ctx.closePath();
+    } else {
+        ctx.rect(this.x, this.y, this.width, this.height);
+    }
+    
     ctx.fillStyle = this.fill;
     ctx.fill();
+    
+    // Shadow off for stroke/text (optional, but usually better on shape only)
+    // Actually user said "Add subtle shadow to... Rect and Circle". 
+    // Usually stroke also casts shadow if it's the edge. 
+    // But text shouldn't get this shape shadow if it's inside.
+    // Let's keep shadow for stroke too.
+    
     ctx.strokeStyle = this.stroke;
     ctx.lineWidth = this.isSelected ? 2 : 1;
     ctx.stroke();
+
+    ctx.restore(); // Restore context (remove shadow) for text and children
 
     // Render centered multi-line label
     if (this.label) {
@@ -163,6 +208,7 @@ export class RectNode extends SceneNode {
       height: this.height,
       fill: this.fill,
       stroke: this.stroke,
+      cornerRadius: this.cornerRadius || undefined,
       label: this.label || undefined,
       labelFontSize: this.labelFontSize !== 14 ? this.labelFontSize : undefined,
       labelColor: this.labelColor !== '#333333' ? this.labelColor : undefined,
@@ -179,6 +225,7 @@ export class RectNode extends SceneNode {
     node.height = data.height;
     node.fill = data.fill;
     node.stroke = data.stroke;
+    node.cornerRadius = data.cornerRadius ?? 0;
     node.label = data.label ?? '';
     node.labelFontSize = data.labelFontSize ?? 14;
     node.labelColor = data.labelColor ?? '#333333';
@@ -253,6 +300,12 @@ export class CircleNode extends SceneNode {
     const rx = this.width / 2;
     const ry = this.height / 2;
 
+    ctx.save();
+    // Drop Shadow
+    ctx.shadowColor = 'rgba(0,0,0,0.05)';
+    ctx.shadowBlur = 10;
+    ctx.shadowOffsetY = 4;
+
     ctx.beginPath();
     ctx.ellipse(cx, cy, Math.abs(rx), Math.abs(ry), 0, 0, Math.PI * 2);
     ctx.fillStyle = this.fill;
@@ -260,6 +313,8 @@ export class CircleNode extends SceneNode {
     ctx.strokeStyle = this.stroke;
     ctx.lineWidth = this.isSelected ? 2 : 1;
     ctx.stroke();
+    
+    ctx.restore(); // Remove shadow
 
     // Render centered multi-line label
     if (this.label) {
@@ -456,6 +511,131 @@ export class LineNode extends SceneNode {
     node.label = data.label ?? '';
     node.labelFontSize = data.labelFontSize ?? 12;
     node.labelColor = data.labelColor ?? '#666666';
+    node.parentId = data.parentId ?? null;
+    return node;
+  }
+}
+
+// ============ Freehand Node ============
+
+export class FreehandNode extends SceneNode {
+  points: { x: number; y: number }[] = [];
+  stroke: string = '#333333';
+  strokeWidth: number = 2;
+
+  constructor(id: string) {
+    super(id);
+    this.width = 0;
+    this.height = 0;
+  }
+
+  /** Set absolute points, normalizing them to be relative to the bounding box */
+  setPoints(absolutePoints: { x: number; y: number }[]) {
+    if (absolutePoints.length === 0) return;
+    
+    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    for (const p of absolutePoints) {
+      if (p.x < minX) minX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y > maxY) maxY = p.y;
+    }
+
+    this.x = minX;
+    this.y = minY;
+    this.width = maxX - minX;
+    this.height = maxY - minY;
+    
+    // Convert to relative points
+    this.points = absolutePoints.map(p => ({ x: p.x - minX, y: p.y - minY }));
+  }
+
+  updateBounds() {
+    // No-op, handled in setPoints.
+    // Kept for interface compatibility if needed, or we can remove/re-implement 
+    // if points are modified directly.
+    // For now, assume setPoints is the primary way to update geometry.
+  }
+
+  render(ctx: CanvasRenderingContext2D) {
+    if (this.points.length < 2) return;
+    ctx.beginPath();
+    ctx.moveTo(this.x + this.points[0].x, this.y + this.points[0].y);
+    for (let i = 1; i < this.points.length; i++) {
+      ctx.lineTo(this.x + this.points[i].x, this.y + this.points[i].y);
+    }
+    ctx.strokeStyle = this.stroke;
+    ctx.lineWidth = this.isSelected ? this.strokeWidth + 1 : this.strokeWidth;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.stroke();
+
+    if (this.isSelected) {
+      ctx.strokeStyle = '#0066cc';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(this.x, this.y, this.width, this.height);
+      ctx.setLineDash([]);
+    }
+  }
+
+  hitTest(x: number, y: number): boolean {
+    const threshold = Math.max(6, this.strokeWidth);
+    // x, y are world coordinates
+    // Points are relative to this.x, this.y
+    const rX = x - this.x;
+    const rY = y - this.y;
+
+    // Quick bounding box check
+    if (x < this.x - threshold || x > this.x + this.width + threshold ||
+        y < this.y - threshold || y > this.y + this.height + threshold) {
+      return false;
+    }
+
+    for (let i = 0; i < this.points.length - 1; i++) {
+      const p1 = this.points[i];
+      const p2 = this.points[i + 1];
+      const dx = p2.x - p1.x;
+      const dy = p2.y - p1.y;
+      const lenSq = dx * dx + dy * dy;
+      if (lenSq === 0) {
+        if (Math.hypot(rX - p1.x, rY - p1.y) <= threshold) return true;
+        continue;
+      }
+      let t = ((rX - p1.x) * dx + (rY - p1.y) * dy) / lenSq;
+      t = Math.max(0, Math.min(1, t));
+      const px = p1.x + t * dx;
+      const py = p1.y + t * dy;
+      if (Math.hypot(rX - px, rY - py) <= threshold) return true;
+    }
+    return false;
+  }
+
+  toJSON(): FreehandNodeData {
+    const data: FreehandNodeData = {
+      id: this.id,
+      type: 'freehand',
+      x: this.x,
+      y: this.y,
+      width: this.width,
+      height: this.height,
+      points: this.points,
+      stroke: this.stroke,
+      strokeWidth: this.strokeWidth,
+    };
+    if (this.parentId) data.parentId = this.parentId;
+    return data;
+  }
+
+  static fromJSON(data: FreehandNodeData): FreehandNode {
+    const node = new FreehandNode(data.id);
+    node.x = data.x;
+    node.y = data.y;
+    node.width = data.width;
+    node.height = data.height;
+    node.points = data.points;
+    node.stroke = data.stroke;
+    node.strokeWidth = data.strokeWidth;
     node.parentId = data.parentId ?? null;
     return node;
   }

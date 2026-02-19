@@ -35,6 +35,8 @@ interface EditorState {
   alignBottom: () => void;
   distributeHorizontal: () => void;
   distributeVertical: () => void;
+  groupSelected: () => void;
+  ungroupSelected: () => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -130,4 +132,6 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   alignBottom: () => get().editor?.alignBottom(),
   distributeHorizontal: () => get().editor?.distributeHorizontal(),
   distributeVertical: () => get().editor?.distributeVertical(),
+  groupSelected: () => get().editor?.groupSelected(),
+  ungroupSelected: () => get().editor?.ungroupSelected(),
 }));

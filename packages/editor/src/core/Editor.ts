@@ -180,10 +180,25 @@ export class Editor {
                 const startX = worldX;
                 const startY = worldY;
                 
-                // Snapshot original positions of all selected nodes
-                const initialPositions = this.scene.nodes
-                   .filter(n => n.isSelected)
-                   .map(n => ({ node: n, startX: n.x, startY: n.y }));
+                // Snapshot original positions of all selected nodes + their descendants
+                 const selectedNodes = this.scene.nodes.filter(n => n.isSelected);
+                 const selectedIds = new Set(selectedNodes.map(n => n.id));
+                 
+                 // Collect descendants that are not already selected
+                 const extraNodes: SceneNode[] = [];
+                 for (const sel of selectedNodes) {
+                   const desc = this.getDescendants(sel.id);
+                   for (const d of desc) {
+                     if (!selectedIds.has(d.id)) {
+                       extraNodes.push(d);
+                       selectedIds.add(d.id); // prevent duplicates
+                     }
+                   }
+                 }
+                 
+                 const allDragNodes = [...selectedNodes, ...extraNodes];
+                 const initialPositions = allDragNodes
+                    .map(n => ({ node: n, startX: n.x, startY: n.y }));
                 
                 const onDragMove = (ev: MouseEvent) => {
                     const { x: currX, y: currY } = this.viewport.screenToWorld(ev.offsetX, ev.offsetY);
@@ -490,6 +505,105 @@ export class Editor {
     this.emitChange();
   }
 
+  // ============ Grouping ============
+
+  /** Get direct children of a node */
+  getChildren(nodeId: string): SceneNode[] {
+    return this.scene.nodes.filter(n => n.parentId === nodeId);
+  }
+
+  /** Recursively get all descendants of a node */
+  getDescendants(nodeId: string): SceneNode[] {
+    const result: SceneNode[] = [];
+    const stack = [nodeId];
+    while (stack.length > 0) {
+      const current = stack.pop()!;
+      const children = this.scene.nodes.filter(n => n.parentId === current);
+      for (const child of children) {
+        result.push(child);
+        stack.push(child.id);
+      }
+    }
+    return result;
+  }
+
+  /** Group selected nodes: the largest area node becomes parent */
+  groupSelected() {
+    const selected = this.scene.nodes.filter(n => n.isSelected);
+    if (selected.length < 2) return;
+
+    // Pick the one with largest bounding area as parent
+    let parent = selected[0];
+    let maxArea = parent.width * parent.height;
+    for (const n of selected) {
+      const area = n.width * n.height;
+      if (area > maxArea) {
+        maxArea = area;
+        parent = n;
+      }
+    }
+
+    // Set parentId on all other selected nodes
+    for (const n of selected) {
+      if (n !== parent) {
+        n.parentId = parent.id;
+      }
+    }
+
+    this.render();
+    this.emitChange();
+  }
+
+  /** Ungroup: clear parentId of selected nodes */
+  ungroupSelected() {
+    const selected = this.scene.nodes.filter(n => n.isSelected);
+    for (const n of selected) {
+      // Also unparent any children of selected nodes
+      const children = this.getChildren(n.id);
+      for (const child of children) {
+        child.parentId = null;
+      }
+      n.parentId = null;
+    }
+    this.render();
+    this.emitChange();
+  }
+
+  /** Draw dashed borders around nodes that have children */
+  private renderGroupIndicators() {
+    // Find all nodes that are parents
+    const parentIds = new Set<string>();
+    for (const n of this.scene.nodes) {
+      if (n.parentId) parentIds.add(n.parentId);
+    }
+
+    for (const pid of parentIds) {
+      const parent = this.scene.nodes.find(n => n.id === pid);
+      if (!parent) continue;
+
+      const children = this.getDescendants(pid);
+      const allNodes = [parent, ...children];
+
+      // Compute bounding box of all nodes in the group
+      let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+      for (const n of allNodes) {
+        minX = Math.min(minX, n.x);
+        minY = Math.min(minY, n.y);
+        maxX = Math.max(maxX, n.x + n.width);
+        maxY = Math.max(maxY, n.y + n.height);
+      }
+
+      const pad = 8;
+      this.ctx.save();
+      this.ctx.setLineDash([6 / this.viewport.scale, 4 / this.viewport.scale]);
+      this.ctx.strokeStyle = '#999';
+      this.ctx.lineWidth = 1 / this.viewport.scale;
+      this.ctx.strokeRect(minX - pad, minY - pad, maxX - minX + pad * 2, maxY - minY + pad * 2);
+      this.ctx.setLineDash([]);
+      this.ctx.restore();
+    }
+  }
+
   private renderSelectionBox() {
     if (!this.boxStart || !this.boxCurrent) return;
     
@@ -520,13 +634,12 @@ export class Editor {
     const t = this.viewport.transform;
     this.ctx.transform(t[0], t[1], t[2], t[3], t[4], t[5]);
 
-    // Draw Grid (Infinite)
-    this.drawGrid();
 
     // Draw Scene
     this.scene.render(this.ctx);
 
     // Draw Transform Handles
+    this.renderGroupIndicators();
     this.renderHandles();
     this.renderSelectionBox();
     this.ctx.beginPath();
@@ -540,29 +653,7 @@ export class Editor {
   };
 
   drawGrid() {
-    // Determine visible area in world coordinates
-    const topLeft = this.viewport.screenToWorld(0, 0);
-    const bottomRight = this.viewport.screenToWorld(this.width, this.height);
-    
-    const step = 50;
-    const startX = Math.floor(topLeft.x / step) * step;
-    const endX = Math.ceil(bottomRight.x / step) * step;
-    const startY = Math.floor(topLeft.y / step) * step;
-    const endY = Math.ceil(bottomRight.y / step) * step;
-
-    this.ctx.beginPath();
-    this.ctx.strokeStyle = '#e0e0e0';
-    this.ctx.lineWidth = 1 / this.viewport.scale; // Maintain 1px width
-
-    for (let x = startX; x <= endX; x += step) {
-      this.ctx.moveTo(x, startY);
-      this.ctx.lineTo(x, endY);
-    }
-    for (let y = startY; y <= endY; y += step) {
-      this.ctx.moveTo(startX, y);
-      this.ctx.lineTo(endX, y);
-    }
-    this.ctx.stroke();
+    // Grid removed — clean canvas
   }
 
   // Event System
@@ -669,16 +760,16 @@ export class Editor {
     if (selected.length === 1) {
       const node = selected[0];
       if (node instanceof RectNode) {
-        return { type: 'rect', id: node.id, x: node.x, y: node.y, width: node.width, height: node.height, fill: node.fill, stroke: node.stroke };
+        return { type: 'rect', id: node.id, x: node.x, y: node.y, width: node.width, height: node.height, fill: node.fill, stroke: node.stroke, label: node.label, labelFontSize: node.labelFontSize, labelColor: node.labelColor };
       }
       if (node instanceof CircleNode) {
-        return { type: 'circle', id: node.id, x: node.x, y: node.y, width: node.width, height: node.height, fill: node.fill, stroke: node.stroke };
+        return { type: 'circle', id: node.id, x: node.x, y: node.y, width: node.width, height: node.height, fill: node.fill, stroke: node.stroke, label: node.label, labelFontSize: node.labelFontSize, labelColor: node.labelColor };
       }
       if (node instanceof TextNode) {
         return { type: 'text', id: node.id, x: node.x, y: node.y, text: node.text, fontSize: node.fontSize, color: node.color };
       }
       if (node instanceof LineNode) {
-        return { type: 'line', id: node.id, x: node.x, y: node.y, endX: node.endX, endY: node.endY, stroke: node.stroke, lineWidth: node.lineWidth };
+        return { type: 'line', id: node.id, x: node.x, y: node.y, endX: node.endX, endY: node.endY, stroke: node.stroke, lineWidth: node.lineWidth, startArrow: node.startArrow, endArrow: node.endArrow, label: node.label, labelFontSize: node.labelFontSize, labelColor: node.labelColor };
       }
       return { type: 'none' };
     }
@@ -749,6 +840,9 @@ export class Editor {
       if (node instanceof RectNode || node instanceof CircleNode) {
         if (props.fill !== undefined) node.fill = props.fill;
         if (props.stroke !== undefined) node.stroke = props.stroke;
+        if (props.label !== undefined) node.label = props.label;
+        if (props.labelFontSize !== undefined) node.labelFontSize = props.labelFontSize;
+        if (props.labelColor !== undefined) node.labelColor = props.labelColor;
       }
       if (node instanceof TextNode) {
         if (props.text !== undefined) node.text = props.text;
@@ -758,6 +852,11 @@ export class Editor {
       if (node instanceof LineNode) {
         if (props.stroke !== undefined) node.stroke = props.stroke;
         if (props.lineWidth !== undefined) node.lineWidth = props.lineWidth;
+        if (props.startArrow !== undefined) node.startArrow = props.startArrow;
+        if (props.endArrow !== undefined) node.endArrow = props.endArrow;
+        if (props.label !== undefined) node.label = props.label;
+        if (props.labelFontSize !== undefined) node.labelFontSize = props.labelFontSize;
+        if (props.labelColor !== undefined) node.labelColor = props.labelColor;
       }
     }
     this.render();
@@ -988,6 +1087,13 @@ export class Editor {
         } else if (e.key.toLowerCase() === 'y') {
             e.preventDefault();
             this.redo();
+        } else if (e.key.toLowerCase() === 'g') {
+            e.preventDefault();
+            if (e.shiftKey) {
+                this.ungroupSelected();
+            } else {
+                this.groupSelected();
+            }
         }
     }
   };
@@ -1009,15 +1115,19 @@ export class Editor {
   onDblClick = (e: MouseEvent) => {
     const { x: worldX, y: worldY } = this.viewport.screenToWorld(e.offsetX, e.offsetY);
     const hit = this.scene.hitTest(worldX, worldY);
-    if (!hit || !(hit instanceof TextNode)) return;
+    if (!hit) return;
 
-    // Select the text node
+    // Select the node
     this.scene.nodes.forEach(n => n.isSelected = false);
     hit.isSelected = true;
     this.render();
     this.emitChange();
 
-    this.startTextEditing(hit);
+    if (hit instanceof TextNode) {
+      this.startTextEditing(hit);
+    } else if (hit instanceof RectNode || hit instanceof CircleNode || hit instanceof LineNode) {
+      this.startLabelEditing(hit);
+    }
   };
 
   private startTextEditing(node: TextNode) {
@@ -1089,6 +1199,97 @@ export class Editor {
       if (ev.key === 'Escape') {
         ev.preventDefault();
         // Cancel: revert
+        textarea.removeEventListener('blur', commit);
+        textarea.removeEventListener('keydown', onKeyDown);
+        textarea.remove();
+        this.isEditingText = false;
+        this.render();
+        return;
+      }
+      if (ev.key === 'Enter' && !ev.shiftKey) {
+        ev.preventDefault();
+        commit();
+      }
+    };
+
+    textarea.addEventListener('blur', commit);
+    textarea.addEventListener('keydown', onKeyDown);
+  }
+
+  private startLabelEditing(node: RectNode | CircleNode | LineNode) {
+    this.isEditingText = true;
+
+    const t = this.viewport.transform;
+    const scale = this.viewport.scale;
+
+    // Position at center of node (or midpoint for line)
+    let centerX: number, centerY: number;
+    if (node instanceof LineNode) {
+      centerX = (node.x + node.endX) / 2;
+      centerY = (node.y + node.endY) / 2;
+    } else {
+      centerX = node.x + node.width / 2;
+      centerY = node.y + node.height / 2;
+    }
+
+    const screenX = centerX * t[0] + t[4];
+    const screenY = centerY * t[3] + t[5];
+
+    const fontSize = (node instanceof LineNode ? node.labelFontSize : node.labelFontSize) * scale;
+
+    const textarea = document.createElement('textarea');
+    textarea.value = node.label;
+    textarea.placeholder = 'Enter label...';
+    textarea.style.cssText = `
+      position: absolute;
+      left: ${screenX - 60}px;
+      top: ${screenY - 14}px;
+      width: 120px;
+      font-size: ${fontSize}px;
+      font-family: sans-serif;
+      color: ${node instanceof LineNode ? node.labelColor : node.labelColor};
+      background: rgba(255,255,255,0.97);
+      border: 2px solid #0066cc;
+      border-radius: 4px;
+      padding: 4px 6px;
+      outline: none;
+      resize: none;
+      text-align: center;
+      min-height: ${fontSize + 12}px;
+      z-index: 1000;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+      line-height: 1.3;
+      overflow: hidden;
+    `;
+
+    const parent = this.canvas.parentElement;
+    if (!parent) return;
+    parent.style.position = 'relative';
+    parent.appendChild(textarea);
+
+    const autoResize = () => {
+      textarea.style.height = 'auto';
+      textarea.style.height = textarea.scrollHeight + 'px';
+    };
+    autoResize();
+    textarea.addEventListener('input', autoResize);
+
+    textarea.focus();
+    textarea.select();
+
+    const commit = () => {
+      node.label = textarea.value.trim();
+      textarea.removeEventListener('blur', commit);
+      textarea.removeEventListener('keydown', onKeyDown);
+      textarea.remove();
+      this.isEditingText = false;
+      this.render();
+      this.emitChange();
+    };
+
+    const onKeyDown = (ev: KeyboardEvent) => {
+      if (ev.key === 'Escape') {
+        ev.preventDefault();
         textarea.removeEventListener('blur', commit);
         textarea.removeEventListener('keydown', onKeyDown);
         textarea.remove();

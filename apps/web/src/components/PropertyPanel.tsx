@@ -5,10 +5,13 @@ import type { MixedValue } from '@koboard/editor'; // Import MixedValue type
 // ============ Reusable Input Components ============
 
 function PropRow({ label, children }: { label: string; children: React.ReactNode }) {
+  if (!label) {
+    return <div>{children}</div>;
+  }
   return (
-    <div className="flex items-center gap-2">
-      <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider w-8 shrink-0">{label}</label>
-      <div className="flex-1">{children}</div>
+    <div className="flex items-center gap-1">
+      <label className="text-[11px] font-semibold text-slate-400 uppercase tracking-wider w-6 shrink-0">{label}</label>
+      <div className="flex-1 min-w-0">{children}</div>
     </div>
   );
 }
@@ -61,6 +64,35 @@ function ColorInput({ label, value, onChange }: { label: string; value: MixedVal
         />
       </div>
     </PropRow>
+  );
+}
+
+function TextInput({ label, value, onChange, placeholder }: { label: string; value: string; onChange: (v: string) => void; placeholder?: string }) {
+  return (
+    <PropRow label={label}>
+      <input
+        type="text"
+        value={value}
+        placeholder={placeholder || ''}
+        onChange={e => onChange(e.target.value)}
+        className="w-full bg-slate-50 dark:bg-gray-700/50 border border-slate-200 dark:border-gray-600 rounded-md px-2 py-1 text-sm text-slate-800 dark:text-slate-200 outline-none focus:border-primary focus:ring-1 focus:ring-primary/30 transition-colors"
+      />
+    </PropRow>
+  );
+}
+
+function ToggleBtn({ label, active, onClick }: { label: string; active: boolean; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      className={`px-2.5 py-1 rounded-md text-xs font-medium transition-colors ${
+        active
+          ? 'bg-blue-500 text-white shadow-sm'
+          : 'bg-slate-100 dark:bg-gray-700 text-slate-500 hover:bg-slate-200 dark:hover:bg-gray-600'
+      }`}
+    >
+      {label}
+    </button>
   );
 }
 
@@ -117,6 +149,13 @@ function ShapePanel() {
       <Divider />
       <SectionTitle icon="border_color" title="Stroke" />
       <ColorInput label="" value={info.stroke} onChange={v => set({ stroke: v })} />
+      <Divider />
+      <SectionTitle icon="label" title="Label" />
+      <TextInput label="" value={info.label} onChange={v => set({ label: v })} placeholder="Double-click to edit" />
+      <div className="grid grid-cols-2 gap-2 mt-2">
+        <NumberInput label="Sz" value={info.labelFontSize} onChange={v => set({ labelFontSize: Math.max(6, v) })} />
+        <ColorInput label="Cl" value={info.labelColor} onChange={v => set({ labelColor: v })} />
+      </div>
     </>
   );
 }
@@ -178,6 +217,19 @@ function LinePanel() {
       <div className="mt-2">
         <NumberInput label="Wt" value={info.lineWidth} onChange={v => set({ lineWidth: Math.max(1, v) })} />
       </div>
+      <Divider />
+      <SectionTitle icon="arrow_forward" title="Arrows" />
+      <div className="flex gap-2">
+        <ToggleBtn label="← Start" active={info.startArrow} onClick={() => set({ startArrow: !info.startArrow })} />
+        <ToggleBtn label="End →" active={info.endArrow} onClick={() => set({ endArrow: !info.endArrow })} />
+      </div>
+      <Divider />
+      <SectionTitle icon="label" title="Label" />
+      <TextInput label="" value={info.label} onChange={v => set({ label: v })} placeholder="e.g. gRPC, TCP:3306" />
+      <div className="grid grid-cols-2 gap-2 mt-2">
+        <NumberInput label="Sz" value={info.labelFontSize} onChange={v => set({ labelFontSize: Math.max(6, v) })} />
+        <ColorInput label="Cl" value={info.labelColor} onChange={v => set({ labelColor: v })} />
+      </div>
     </>
   );
 }
@@ -214,6 +266,24 @@ function AlignmentControls() {
        <div className="flex justify-evenly px-6">
           <AlignBtn icon="space_dashboard" title="Distribute Horizontal" onClick={store.distributeHorizontal} />
           <AlignBtn icon="grid_view" title="Distribute Vertical" onClick={store.distributeVertical} />
+       </div>
+       <div className="flex gap-2 mt-3 px-1">
+         <button
+           onClick={store.groupSelected}
+           title="Group Selected (set parent)"
+           className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-600 bg-slate-100 hover:bg-blue-50 hover:text-blue-600 dark:bg-gray-700 dark:text-slate-300 dark:hover:bg-blue-900/30 dark:hover:text-blue-400 transition-colors"
+         >
+           <span className="material-symbols-outlined text-[16px]">group_work</span>
+           Group
+         </button>
+         <button
+           onClick={store.ungroupSelected}
+           title="Ungroup Selected (clear parent)"
+           className="flex-1 flex items-center justify-center gap-1 px-2 py-1.5 rounded-md text-xs font-medium text-slate-600 bg-slate-100 hover:bg-orange-50 hover:text-orange-600 dark:bg-gray-700 dark:text-slate-300 dark:hover:bg-orange-900/30 dark:hover:text-orange-400 transition-colors"
+         >
+           <span className="material-symbols-outlined text-[16px]">workspaces</span>
+           Ungroup
+         </button>
        </div>
        <Divider />
     </div>

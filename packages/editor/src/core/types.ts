@@ -13,6 +13,9 @@ export interface RectSelectionInfo {
   height: number;
   fill: string;
   stroke: string;
+  label: string;
+  labelFontSize: number;
+  labelColor: string;
 }
 
 export interface CircleSelectionInfo {
@@ -24,6 +27,9 @@ export interface CircleSelectionInfo {
   height: number;
   fill: string;
   stroke: string;
+  label: string;
+  labelFontSize: number;
+  labelColor: string;
 }
 
 export interface TextSelectionInfo {
@@ -45,6 +51,11 @@ export interface LineSelectionInfo {
   endY: number;
   stroke: string;
   lineWidth: number;
+  startArrow: boolean;
+  endArrow: boolean;
+  label: string;
+  labelFontSize: number;
+  labelColor: string;
 }
 
 /** A value that may be the same across all selected nodes, or mixed */
@@ -93,4 +104,9 @@ export interface NodeProps {
   fontSize?: number;
   color?: string;
   lineWidth?: number;
+  label?: string;
+  labelFontSize?: number;
+  labelColor?: string;
+  startArrow?: boolean;
+  endArrow?: boolean;
 }

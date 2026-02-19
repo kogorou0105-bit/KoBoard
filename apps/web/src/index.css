@@ -18,15 +18,7 @@
   }
 }
 
-/* Custom styles for the infinite canvas feel */
-.dot-grid {
-    background-size: 24px 24px;
-    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
-}
-
-.dark .dot-grid {
-    background-image: radial-gradient(#333 1px, transparent 1px);
-}
+/* Grid removed — clean canvas */
 
 /* Hide scrollbars for a cleaner look */
 ::-webkit-scrollbar {

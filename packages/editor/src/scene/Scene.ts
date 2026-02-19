@@ -1,4 +1,13 @@
-import { SceneNode } from './SceneNode';
+import { SceneNode, RectNode, TextNode, CircleNode, LineNode } from './SceneNode';
+import type { AnyNodeData } from './SceneNode';
+
+// ============ Scene Data Schema ============
+
+export interface SceneData {
+  nodes: AnyNodeData[];
+}
+
+// ============ Scene Class ============
 
 export class Scene {
   nodes: SceneNode[] = [];
@@ -26,4 +35,67 @@ export class Scene {
     }
     return null;
   }
+
+  // ============ Serialization ============
+
+  toJSON(): SceneData {
+    return {
+      nodes: this.nodes.map(node => node.toJSON()),
+    };
+  }
+
+  /** In-place load: clears current nodes and rebuilds from data */
+  loadFromJSON(data: SceneData) {
+    this.nodes = [];
+    for (const nodeData of data.nodes) {
+      let node: SceneNode | null = null;
+      switch (nodeData.type) {
+        case 'rect':
+          node = RectNode.fromJSON(nodeData);
+          break;
+        case 'text':
+          node = TextNode.fromJSON(nodeData);
+          break;
+        case 'circle':
+          node = CircleNode.fromJSON(nodeData as any);
+          break;
+        case 'line':
+          node = LineNode.fromJSON(nodeData as any);
+          break;
+        default:
+          console.warn(`Unknown node type: ${(nodeData as any).type}`);
+      }
+      if (node) {
+        this.addNode(node);
+      }
+    }
+  }
+
+  static fromJSON(data: SceneData): Scene {
+    const scene = new Scene();
+    for (const nodeData of data.nodes) {
+      let node: SceneNode | null = null;
+      switch (nodeData.type) {
+        case 'rect':
+          node = RectNode.fromJSON(nodeData);
+          break;
+        case 'text':
+          node = TextNode.fromJSON(nodeData);
+          break;
+        case 'circle':
+          node = CircleNode.fromJSON(nodeData as any);
+          break;
+        case 'line':
+          node = LineNode.fromJSON(nodeData as any);
+          break;
+        default:
+          console.warn(`Unknown node type: ${(nodeData as any).type}`);
+      }
+      if (node) {
+        scene.addNode(node);
+      }
+    }
+    return scene;
+  }
 }
+

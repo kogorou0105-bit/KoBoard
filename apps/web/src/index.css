@@ -1,13 +1,49 @@
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #5348ea;
+  --color-background-light: #f6f6f8;
+  --color-background-dark: #121121;
+  --font-display: Inter, sans-serif;
+  
+  --radius-lg: 2rem;
+  --radius-xl: 3rem;
+
+  --animate-shimmer: shimmer 1.5s infinite;
+
+  @keyframes shimmer {
+    100% {
+      transform: translateX(100%);
+    }
+  }
+}
+
+/* Custom styles for the infinite canvas feel */
+.dot-grid {
+    background-size: 24px 24px;
+    background-image: radial-gradient(#cbd5e1 1px, transparent 1px);
+}
+
+.dark .dot-grid {
+    background-image: radial-gradient(#333 1px, transparent 1px);
+}
+
+/* Hide scrollbars for a cleaner look */
+::-webkit-scrollbar {
+    width: 0px;
+    background: transparent;
+}
+
+html, body, #root {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
 }
 
 body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+    font-family: Inter, sans-serif;
+    color: #0f172a;
+    background-color: #f6f6f8;
+    overflow: hidden;
 }

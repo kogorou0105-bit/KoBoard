@@ -3,62 +3,43 @@ import { Editor } from '@koboard/editor';
 import { useEditorStore } from '../store/useEditorStore';
 
 export function Canvas() {
-  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const editorRef = useRef<Editor | null>(null);
   
   // Store actions
-  const updateStats = useEditorStore(state => state.updateStats);
-  const nodeCount = useEditorStore(state => state.nodeCount);
-  const selectionCount = useEditorStore(state => state.selectionCount);
+  const setEditor = useEditorStore(state => state.setEditor);
+  const refreshAll = useEditorStore(state => state.refreshAll);
 
   useEffect(() => {
     if (canvasRef.current && !editorRef.current) {
       const editor = new Editor(canvasRef.current);
       editorRef.current = editor;
+      setEditor(editor);
       editor.resize();
       
-      // Subscribe to changes
+      // Subscribe to changes — refresh everything in the store
       const unsub = editor.subscribe(() => {
-         updateStats({
-            nodeCount: editor.scene.nodes.length,
-            selectionCount: editor.scene.nodes.filter(n => n.isSelected).length
-         });
+        refreshAll();
       });
       
-      // Initial stats
-      updateStats({
-          nodeCount: editor.scene.nodes.length,
-          selectionCount: editor.scene.nodes.filter(n => n.isSelected).length
-      });
+      // Initial sync
+      refreshAll();
 
       return () => {
          unsub();
          editor.dispose();
          editorRef.current = null;
+         setEditor(null);
       };
     }
-  }, [updateStats]);
+  }, [setEditor, refreshAll]);
 
   return (
-    <div ref={containerRef} style={{ width: '100%', height: '100%', overflow: 'hidden', position: 'relative' }}>
+    <div className="w-full h-full overflow-hidden relative">
       <canvas 
         ref={canvasRef} 
-        style={{ display: 'block', width: '100%', height: '100%' }}
+        className="block w-full h-full"
       />
-      
-      {/* Toolbar */}
-      <div style={{
-        position: 'absolute', top: 10, left: '50%', transform: 'translateX(-50%)',
-        background: 'white', padding: '8px 16px', borderRadius: 8,
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)', display: 'flex', gap: 8
-      }}>
-        <button onClick={() => editorRef.current?.addRect()}>Rectangle</button>
-        <button onClick={() => editorRef.current?.addText()}>Text</button>
-        <span style={{ borderLeft: '1px solid #ddd', paddingLeft: 8, display: 'flex', alignItems: 'center', fontSize: 12, color: '#666' }}>
-           Nodes: {nodeCount} | Sel: {selectionCount}
-        </span>
-      </div>
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import type { Editor, SelectionInfo, NodeProps } from '@koboard/editor';
+import { generateDiagramStream } from '../services/aiStream';
 
 interface EditorState {
   editor: Editor | null;
@@ -40,6 +41,7 @@ interface EditorState {
   ungroupSelected: () => void;
   exportPNG: () => void;
   exportSVG: () => void;
+  generateDiagram: (prompt: string) => void;
 }
 
 export const useEditorStore = create<EditorState>((set, get) => ({
@@ -52,7 +54,12 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   selectionBounds: null,
   tool: 'select',
   freehandConfig: { stroke: '#000000', strokeWidth: 2 },
-  setEditor: (editor) => set({ editor }),
+  setEditor: (editor) => {
+    if (editor) {
+      editor.aiStreamProvider = generateDiagramStream as any; // Type mismatch handling for generic function sig if needed
+    }
+    set({ editor });
+  },
   setTool: (tool) => {
     const editor = get().editor;
     if (editor) {
@@ -156,4 +163,8 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   ungroupSelected: () => get().editor?.ungroupSelected(),
   exportPNG: () => get().editor?.exportPNG(),
   exportSVG: () => get().editor?.exportSVG(),
+  generateDiagram: (prompt) => {
+    const editor = get().editor;
+    if (editor) editor.startAIGeneration(prompt);
+  },
 }));

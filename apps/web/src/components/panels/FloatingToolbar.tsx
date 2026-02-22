@@ -9,6 +9,7 @@ export function FloatingToolbar({ onLoadClick }: FloatingToolbarProps) {
   const saveJSON = useEditorStore(state => state.saveJSON);
   const exportPNG = useEditorStore(state => state.exportPNG);
   const exportSVG = useEditorStore(state => state.exportSVG);
+  const generateDiagram = useEditorStore(state => state.generateDiagram);
   const tool = useEditorStore(state => state.tool);
   const setTool = useEditorStore(state => state.setTool);
 
@@ -105,7 +106,10 @@ export function FloatingToolbar({ onLoadClick }: FloatingToolbarProps) {
         <div className="w-px h-6 bg-slate-200 dark:bg-gray-600 mx-1"></div>
         
         {/* Action: Magic AI */}
-        <button className="relative group flex items-center gap-2 pl-3 pr-4 h-10 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110 transition-all overflow-hidden">
+        <button 
+          onClick={() => generateDiagram('随便传个 prompt，反正是 mock 的')}
+          className="relative group flex items-center gap-2 pl-3 pr-4 h-10 rounded-full bg-gradient-to-r from-violet-600 to-indigo-600 text-white font-semibold text-sm shadow-lg shadow-indigo-500/30 hover:shadow-indigo-500/50 hover:brightness-110 transition-all overflow-hidden"
+        >
            {/* Shimmer effect */}
            <div className="absolute inset-0 -translate-x-full group-hover:animate-shimmer bg-gradient-to-r from-transparent via-white/20 to-transparent z-0"></div>
            <span className="material-symbols-outlined text-[20px] relative z-10" style={{ fontVariationSettings: "'FILL' 1" }}>auto_awesome</span>

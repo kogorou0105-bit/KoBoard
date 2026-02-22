@@ -14,9 +14,11 @@
     "build": "tsc"
   },
   "dependencies": {
+    "dagre": "^0.8.5",
     "rbush": "^3.0.1"
   },
   "devDependencies": {
+    "@types/dagre": "^0.7.53",
     "typescript": "^5.0.0"
   },
   "keywords": [],

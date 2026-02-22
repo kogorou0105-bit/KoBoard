@@ -4,6 +4,8 @@ import type { SceneData } from '../scene/Scene';
 import { RectNode, TextNode, CircleNode, LineNode, FreehandNode } from '../scene/SceneNode';
 import type { SelectionInfo, NodeProps, MultiSelectionInfo } from './types';
 import type { LineBinding } from '../scene/SceneNode';
+import * as dagre from 'dagre';
+import { AIGeneratedItem } from './ai-types';
 
 export type ToolType = 'select' | 'freehand' | 'rect' | 'circle' | 'text' | 'line';
 
@@ -1913,6 +1915,104 @@ export class Editor {
         }
       }
     }
+  }
+
+  // ============ AI Flow Generation ============
+
+  aiStreamProvider?: (prompt: string, onItemParsed: (item: AIGeneratedItem) => void, onComplete: () => void) => void;
+
+  startAIGeneration(prompt: string) {
+    if (!this.aiStreamProvider) {
+      console.warn('No AI stream provider attached to editor.');
+      return;
+    }
+    this.aiStreamProvider(prompt, (item: AIGeneratedItem) => {
+      this.addAINode(item);
+    }, () => {
+      this.pushSnapshot();
+    });
+  }
+
+  addAINode(item: AIGeneratedItem) {
+    if (item.type === 'node') {
+      const node = new RectNode(item.id);
+      node.x = 0;
+      node.y = 0;
+      node.width = 120;
+      node.height = 60;
+      node.fill = '#ffffff';
+      node.stroke = '#3b82f6';
+      node.cornerRadius = 8;
+      node.label = item.label;
+      node.labelFontSize = 14;
+      node.labelColor = '#1e293b';
+      this.scene.addNode(node);
+    } else if (item.type === 'edge') {
+      const edge = new LineNode(item.id);
+      edge.x = 0;
+      edge.y = 0;
+      edge.width = 0;
+      edge.height = 0;
+      edge.stroke = '#94a3b8';
+      edge.lineWidth = 2;
+      edge.startArrow = false;
+      edge.endArrow = true;
+      edge.label = item.label || '';
+      edge.labelFontSize = 12;
+      edge.labelColor = '#64748b';
+      edge.startBinding = { nodeId: item.source, handle: 's' };
+      edge.endBinding = { nodeId: item.target, handle: 'n' };
+      this.scene.addNode(edge);
+    }
+    this.applyAutoLayout();
+  }
+
+  applyAutoLayout() {
+    const g = new dagre.graphlib.Graph();
+    g.setGraph({
+      rankdir: 'TB',
+      align: 'UL',
+      nodesep: 60,
+      ranksep: 80,
+      marginx: 100,
+      marginy: 100
+    });
+    g.setDefaultEdgeLabel(() => ({}));
+
+    // Add nodes to dagre
+    const nodes = this.scene.nodes;
+    nodes.forEach(n => {
+      if (n instanceof RectNode || n instanceof CircleNode || n instanceof TextNode) {
+        g.setNode(n.id, { width: n.width, height: n.height });
+      }
+    });
+
+    // Add edges to dagre
+    nodes.forEach(n => {
+      if (n instanceof LineNode) {
+        if (n.startBinding && n.endBinding) {
+          g.setEdge(n.startBinding.nodeId, n.endBinding.nodeId);
+        }
+      }
+    });
+
+    // Layout
+    dagre.layout(g);
+
+    // Apply layout back to nodes
+    nodes.forEach(n => {
+      if (n instanceof RectNode || n instanceof CircleNode || n instanceof TextNode) {
+        const dNode = g.node(n.id);
+        if (dNode) {
+          // Dagre returns coordinates of the center of the node
+          n.x = dNode.x - n.width / 2;
+          n.y = dNode.y - n.height / 2;
+        }
+      }
+    });
+
+    this.updateLineBindings();
+    this.render();
   }
 }
 

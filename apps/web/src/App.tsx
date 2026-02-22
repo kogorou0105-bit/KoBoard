@@ -1,5 +1,5 @@
-import { Canvas } from "./components/Canvas";
-import Layout from "./components/Layout";
+import { Canvas } from "@/components/Canvas";
+import Layout from "@/components/Layout";
 
 function App() {
   return (

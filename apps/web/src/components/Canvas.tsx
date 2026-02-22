@@ -1,6 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { Editor } from '@koboard/editor';
-import { useEditorStore } from '../store/useEditorStore';
+import { useEditorStore } from '@/store/useEditorStore';
 
 export function Canvas() {
   const canvasRef = useRef<HTMLCanvasElement>(null);

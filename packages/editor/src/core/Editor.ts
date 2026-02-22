@@ -5,6 +5,8 @@ import { RectNode, TextNode, CircleNode, LineNode, FreehandNode } from '../scene
 import type { SelectionInfo, NodeProps, MultiSelectionInfo } from './types';
 import type { LineBinding } from '../scene/SceneNode';
 
+export type ToolType = 'select' | 'freehand' | 'rect' | 'circle' | 'text' | 'line';
+
 export class Editor {
   canvas: HTMLCanvasElement;
   ctx: CanvasRenderingContext2D;
@@ -35,12 +37,12 @@ export class Editor {
   private static SNAP_DISTANCE = 12; // world-space snap threshold
 
   // Active tool
-  private _tool: 'select' | 'freehand' = 'select';
+  private _tool: ToolType = 'select';
   
   get tool() { return this._tool; }
-  setTool(tool: 'select' | 'freehand') {
+  setTool(tool: ToolType) {
     this._tool = tool;
-    this.canvas.style.cursor = tool === 'freehand' ? 'crosshair' : 'default';
+    this.canvas.style.cursor = tool === 'freehand' ? 'crosshair' : (tool === 'select' ? 'default' : 'crosshair');
   }
 
   // Default styles for new freehand nodes
@@ -129,6 +131,77 @@ export class Editor {
        // Standard is Space+Drag, which requires `keydown` tracking.
        // Let's stick to Middle Click or Shift+Click for now.
        const isPan = e.button === 1 || (e.button === 0 && (e.ctrlKey || e.metaKey || e.shiftKey));
+
+       // Shape creation modes
+       if (!isPan && ['rect', 'circle', 'text', 'line'].includes(this._tool) && e.button === 0) {
+         const { x: startWx, y: startWy } = this.viewport.screenToWorld(e.offsetX, e.offsetY);
+         let node: SceneNode;
+         const id = crypto.randomUUID();
+
+         if (this._tool === 'rect') {
+             node = new RectNode(id);
+             node.x = startWx; node.y = startWy; node.width = 0; node.height = 0;
+         } else if (this._tool === 'circle') {
+             node = new CircleNode(id);
+             node.x = startWx; node.y = startWy; node.width = 0; node.height = 0;
+         } else if (this._tool === 'text') {
+             node = new TextNode(id);
+             node.x = startWx; node.y = startWy;
+             (node as TextNode).text = 'Text';
+         } else {
+             node = new LineNode(id);
+             node.x = startWx; node.y = startWy;
+             node.width = 0; node.height = 0;
+         }
+
+         this.scene.addNode(node);
+         this.scene.nodes.forEach(n => n.isSelected = false);
+         node.isSelected = true;
+
+         const onMove = (ev: MouseEvent) => {
+           const { x: mx, y: my } = this.viewport.screenToWorld(ev.offsetX, ev.offsetY);
+           
+           if (this._tool === 'line') {
+             node.width = mx - startWx;
+             node.height = my - startWy;
+           } else if (this._tool !== 'text') { 
+             const width = Math.abs(mx - startWx);
+             const height = Math.abs(my - startWy);
+             node.x = Math.min(startWx, mx);
+             node.y = Math.min(startWy, my);
+             node.width = width;
+             node.height = height;
+           }
+
+           this.render();
+         };
+
+         const onUp = (ev: MouseEvent) => {
+           window.removeEventListener('mousemove', onMove);
+           window.removeEventListener('mouseup', onUp);
+
+           const { x: mx, y: my } = this.viewport.screenToWorld(ev.offsetX, ev.offsetY);
+           const dist = Math.hypot(mx - startWx, my - startWy);
+
+           if (dist < 5) {
+               if (this._tool === 'rect' || this._tool === 'circle') {
+                   node.width = 100;
+                   node.height = 100;
+               } else if (this._tool === 'line') {
+                   node.width = 100;
+                   node.height = 100;
+               }
+           }
+
+           this.pushSnapshot();
+           this.render();
+           this.emitChange();
+         };
+
+         window.addEventListener('mousemove', onMove);
+         window.addEventListener('mouseup', onUp);
+         return;
+       }
 
        // Freehand drawing mode
        if (!isPan && this._tool === 'freehand' && e.button === 0) {
@@ -710,13 +783,13 @@ export class Editor {
     this.renderGroupIndicators();
     this.renderHandles();
     this.renderSelectionBox();
-    this.ctx.beginPath();
-    this.ctx.strokeStyle = 'red';
-    this.ctx.lineWidth = 2 / this.viewport.scale; // 保持线宽永远是视觉上的 2px
-    this.ctx.moveTo(-50, 0); this.ctx.lineTo(50, 0); // X轴
-    this.ctx.moveTo(0, -50); this.ctx.lineTo(0, 50); // Y轴
-    this.ctx.stroke();
-    this.ctx.fillText("世界原点 (0,0)", 5, -5);
+    // this.ctx.beginPath();
+    // this.ctx.strokeStyle = 'red';
+    // this.ctx.lineWidth = 2 / this.viewport.scale; // 保持线宽永远是视觉上的 2px
+    // this.ctx.moveTo(-50, 0); this.ctx.lineTo(50, 0); // X轴
+    // this.ctx.moveTo(0, -50); this.ctx.lineTo(0, 50); // Y轴
+    // this.ctx.stroke();
+    // this.ctx.fillText("世界原点 (0,0)", 5, -5);
     this.ctx.restore();
   };
 
@@ -842,7 +915,7 @@ export class Editor {
     if (selected.length === 1) {
       const node = selected[0];
       if (node instanceof RectNode) {
-        return { type: 'rect', id: node.id, x: node.x, y: node.y, width: node.width, height: node.height, fill: node.fill, stroke: node.stroke, label: node.label, labelFontSize: node.labelFontSize, labelColor: node.labelColor };
+        return { type: 'rect', id: node.id, x: node.x, y: node.y, width: node.width, height: node.height, fill: node.fill, stroke: node.stroke, label: node.label, labelFontSize: node.labelFontSize, labelColor: node.labelColor, cornerRadius: node.cornerRadius };
       }
       if (node instanceof CircleNode) {
         return { type: 'circle', id: node.id, x: node.x, y: node.y, width: node.width, height: node.height, fill: node.fill, stroke: node.stroke, label: node.label, labelFontSize: node.labelFontSize, labelColor: node.labelColor };
@@ -890,10 +963,22 @@ export class Editor {
       // All are shapes
       info.fill = mixedVal(shapes.map(s => s.fill));
       info.stroke = mixedVal(shapes.map(s => s.stroke));
+      
+      const rects = shapes.filter(s => s instanceof RectNode) as RectNode[];
+      if (rects.length === shapes.length) {
+        info.cornerRadius = mixedVal(rects.map(r => r.cornerRadius));
+      } else if (rects.length > 0) {
+        info.cornerRadius = 'mixed';
+      }
     } else if (shapes.length > 0) {
       // Some shapes in mixed selection
       info.fill = 'mixed';
       info.stroke = 'mixed';
+      
+      const rects = shapes.filter(s => s instanceof RectNode);
+      if (rects.length > 0) {
+        info.cornerRadius = 'mixed';
+      }
     }
 
     // Text properties
@@ -929,6 +1014,9 @@ export class Editor {
         if (props.label !== undefined) node.label = props.label;
         if (props.labelFontSize !== undefined) node.labelFontSize = props.labelFontSize;
         if (props.labelColor !== undefined) node.labelColor = props.labelColor;
+        if (node instanceof RectNode && props.cornerRadius !== undefined) {
+          node.cornerRadius = props.cornerRadius;
+        }
       }
       if (node instanceof TextNode) {
         if (props.text !== undefined) node.text = props.text;
@@ -1057,6 +1145,9 @@ export class Editor {
 
     // Temporarily render without culling for full export
     this.ctx.clearRect(0, 0, this.width, this.height);
+    this.ctx.fillStyle = 'white';
+    this.ctx.fillRect(0, 0, this.width, this.height);
+    
     this.ctx.save();
     const t = this.viewport.transform;
     this.ctx.transform(t[0], t[1], t[2], t[3], t[4], t[5]);
@@ -1080,20 +1171,11 @@ export class Editor {
     const nodes = this.scene.nodes;
     let svgContent = '';
 
-    // Compute bounding box of all nodes
-    let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    for (const n of nodes) {
-      minX = Math.min(minX, n.x);
-      minY = Math.min(minY, n.y);
-      maxX = Math.max(maxX, n.x + n.width);
-      maxY = Math.max(maxY, n.y + n.height);
-    }
-
-    const pad = 20;
-    const vw = maxX - minX + pad * 2;
-    const vh = maxY - minY + pad * 2;
-    const ox = minX - pad;
-    const oy = minY - pad;
+    // Use current viewport dimensions directly to match PNG export
+    const vw = this.width;
+    const vh = this.height;
+    const ox = 0;
+    const oy = 0;
 
     for (const n of nodes) {
       if (n instanceof RectNode) {
@@ -1140,7 +1222,8 @@ export class Editor {
       }
     }
 
-    const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${vw}" height="${vh}" viewBox="0 0 ${vw} ${vh}">\n  <rect width="100%" height="100%" fill="white" />\n${svgContent}</svg>`;
+    const t = this.viewport.transform;
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>\n<svg xmlns="http://www.w3.org/2000/svg" width="${vw}" height="${vh}" viewBox="0 0 ${vw} ${vh}">\n  <rect width="100%" height="100%" fill="white" />\n  <g transform="matrix(${t[0]}, ${t[1]}, ${t[2]}, ${t[3]}, ${t[4]}, ${t[5]})">\n${svgContent}  </g>\n</svg>`;
 
     const blob = new Blob([svg], { type: 'image/svg+xml' });
     const url = URL.createObjectURL(blob);
@@ -1399,11 +1482,49 @@ export class Editor {
     // Skip shortcuts when editing text inline
     if (this.isEditingText) return;
 
+    // Skip all global shortcuts if the user is typing in an input, textarea, or contentEditable field anywhere in the document
+    const target = e.target as HTMLElement;
+    if (
+      target.tagName === 'INPUT' ||
+      target.tagName === 'TEXTAREA' ||
+      target.isContentEditable
+    ) {
+      return;
+    }
+
     // Delete/Backspace: delete selected nodes
     if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       this.deleteSelected();
       return;
+    }
+
+    // Tool switching shortcuts
+    switch (e.key.toLowerCase()) {
+      case 'v':
+        this.setTool('select');
+        this.emitChange();
+        return;
+      case 'p':
+        this.setTool('freehand');
+        this.emitChange();
+        return;
+      case 'r':
+        this.setTool('rect');
+        this.emitChange();
+        return;
+      case 'o':
+        this.setTool('circle');
+        this.emitChange();
+        return;
+      case 't':
+        this.setTool('text');
+        this.emitChange();
+        return;
+      case 'l':
+        this.setTool('line');
+        this.emitChange();
+        return;
     }
 
     // Undo: Ctrl+Z

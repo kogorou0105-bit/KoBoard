@@ -11,6 +11,7 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
+      '@': path.resolve(__dirname, './src'),
       '@koboard/editor': path.resolve(__dirname, '../../packages/editor/src'),
       '@koboard/common': path.resolve(__dirname, '../../packages/common/src')
     }

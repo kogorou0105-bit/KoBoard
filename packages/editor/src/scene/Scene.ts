@@ -75,30 +75,29 @@ export class Scene {
     };
   }
 
+  private static createNodeFromJSON(nodeData: any): SceneNode | null {
+    switch (nodeData.type) {
+      case 'rect':
+        return RectNode.fromJSON(nodeData);
+      case 'text':
+        return TextNode.fromJSON(nodeData);
+      case 'circle':
+        return CircleNode.fromJSON(nodeData);
+      case 'line':
+        return LineNode.fromJSON(nodeData);
+      case 'freehand':
+        return FreehandNode.fromJSON(nodeData);
+      default:
+        console.warn(`Unknown node type: ${nodeData.type}`);
+        return null;
+    }
+  }
+
   /** In-place load: clears current nodes and rebuilds from data */
   loadFromJSON(data: SceneData) {
     this.nodes = [];
     for (const nodeData of data.nodes) {
-      let node: SceneNode | null = null;
-      switch (nodeData.type) {
-        case 'rect':
-          node = RectNode.fromJSON(nodeData);
-          break;
-        case 'text':
-          node = TextNode.fromJSON(nodeData);
-          break;
-        case 'circle':
-          node = CircleNode.fromJSON(nodeData as any);
-          break;
-        case 'line':
-          node = LineNode.fromJSON(nodeData as any);
-          break;
-        case 'freehand':
-          node = FreehandNode.fromJSON(nodeData as any);
-          break;
-        default:
-          console.warn(`Unknown node type: ${(nodeData as any).type}`);
-      }
+      const node = Scene.createNodeFromJSON(nodeData); // 调用提取出来的公共方法
       if (node) {
         this.addNode(node);
       }
@@ -107,32 +106,7 @@ export class Scene {
 
   static fromJSON(data: SceneData): Scene {
     const scene = new Scene();
-    for (const nodeData of data.nodes) {
-      let node: SceneNode | null = null;
-      switch (nodeData.type) {
-        case 'rect':
-          node = RectNode.fromJSON(nodeData);
-          break;
-        case 'text':
-          node = TextNode.fromJSON(nodeData);
-          break;
-        case 'circle':
-          node = CircleNode.fromJSON(nodeData as any);
-          break;
-        case 'line':
-          node = LineNode.fromJSON(nodeData as any);
-          break;
-        case 'freehand':
-          node = FreehandNode.fromJSON(nodeData as any);
-          break;
-        default:
-          console.warn(`Unknown node type: ${(nodeData as any).type}`);
-      }
-      if (node) {
-        scene.addNode(node);
-      }
-    }
+    scene.loadFromJSON(data); // 直接复用实例方法的逻辑
     return scene;
   }
 }
-

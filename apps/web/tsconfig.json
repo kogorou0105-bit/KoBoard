@@ -22,7 +22,9 @@
     "noFallthroughCasesInSwitch": true,
     
     /* Paths */
+    "baseUrl": ".",
     "paths": {
+      "@/*": ["src/*"],
       "@koboard/editor": ["../../packages/editor/src/index.ts"],
       "@koboard/common": ["../../packages/common/src/index.ts"]
     }

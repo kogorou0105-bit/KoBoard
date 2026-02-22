@@ -2,7 +2,16 @@
   "extends": "../../tsconfig.base.json",
   "compilerOptions": {
     "outDir": "./dist",
-    "rootDir": "./src"
+    "rootDir": "./src",
+    
+    // 1. 解除封印：允许 tsc 真正生成编译后的文件
+    "noEmit": false,
+    
+    // 2. 开启类型声明：为你发布的包自动生成 .d.ts 文件，这样别人装了你的包就会有代码提示
+    "declaration": true,
+    
+    // 3. 解决冲突：因为 noEmit 变成了 false，必须同时关掉下面这个 Vite 默认开启的选项，否则终端会报错
+    "allowImportingTsExtensions": false
   },
   "include": ["src"]
 }

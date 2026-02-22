@@ -24,21 +24,26 @@ export class Viewport {
   zoomAt(x: number, y: number, delta: number) {
     const currentScale = this.scale;
     const newScale = Math.min(Math.max(currentScale * delta, this.minZoom), this.maxZoom);
-    const scaleFactor = newScale / currentScale;
+    // const scaleFactor = newScale / currentScale;
 
-    // Translate so (x, y) is at origin
-    this.transform[4] -= x;
-    this.transform[5] -= y;
+    // // Translate so (x, y) is at origin
+    // this.transform[4] -= x;
+    // this.transform[5] -= y;
 
-    // Scale
-    this.transform[4] *= scaleFactor;
-    this.transform[5] *= scaleFactor;
-    this.transform[0] *= scaleFactor;
-    this.transform[3] *= scaleFactor;
+    // // Scale
+    // this.transform[4] *= scaleFactor;
+    // this.transform[5] *= scaleFactor;
+    // this.transform[0] *= scaleFactor;
+    // this.transform[3] *= scaleFactor;
 
-    // Translate back
-    this.transform[4] += x;
-    this.transform[5] += y;
+    // // Translate back
+    // this.transform[4] += x;
+    // this.transform[5] += y;
+    this.transform[4] = x - (x - this.transform[4]) * newScale / currentScale;
+    this.transform[5] = y - (y - this.transform[5]) * newScale / currentScale;
+    this.transform[0] = newScale;
+    this.transform[3] = newScale;
+
   }
 
   pan(dx: number, dy: number) {

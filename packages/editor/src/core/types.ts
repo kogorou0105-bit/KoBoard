@@ -16,6 +16,7 @@ export interface RectSelectionInfo {
   label: string;
   labelFontSize: number;
   labelColor: string;
+  cornerRadius?: number;
 }
 
 export interface CircleSelectionInfo {
@@ -86,6 +87,7 @@ export interface MultiSelectionInfo {
   /** Shape-only properties (when all selected are shapes) */
   fill?: MixedValue<string>;
   stroke?: MixedValue<string>;
+  cornerRadius?: MixedValue<number>;
   /** Text-only properties (when all selected are text) */
   fontSize?: MixedValue<number>;
   color?: MixedValue<string>;
@@ -122,4 +124,5 @@ export interface NodeProps {
   startArrow?: boolean;
   endArrow?: boolean;
   strokeWidth?: number;
+  cornerRadius?: number;
 }
